@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/noteFragment">
+
+    <fragment
+        android:id="@+id/noteFragment"
+        android:name="com.gamdestroyerr.roomnote.ui.fragments.NoteFragment"
+        android:label="fragment_note"
+        tools:layout="@layout/fragment_note">
+        <action
+            android:id="@+id/action_noteFragment_to_noteContentFragment"
+            app:destination="@id/noteContentFragment"
+            app:enterAnim="@anim/slide_up" />
+    </fragment>
+    <fragment
+        android:id="@+id/noteContentFragment"
+        android:name="com.gamdestroyerr.roomnote.ui.fragments.NoteContentFragment"
+        android:label="fragment_note_content"
+        tools:layout="@layout/fragment_note_content">
+        <action
+            android:id="@+id/action_noteContentFragment_to_noteFragment"
+            app:destination="@id/noteFragment"
+            app:exitAnim="@anim/slide_down"
+            app:popUpTo="@id/noteFragment"
+            app:popUpToInclusive="true" />
+        <argument
+            android:name="Note"
+            app:argType="com.gamdestroyerr.roomnote.db.Note"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+</navigation>

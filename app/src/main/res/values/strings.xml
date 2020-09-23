@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Notes App</string>
+    <string name="app_action_bar_text">My Note</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="back">back</string>
+    <string name="save">save</string>
+    <string name="title">Title</string>
+    <string name="note">Note</string>
+    <string name="some_text">Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+        Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s,
+        when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+        It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
+    </string>
+    <string name="this_is_a_title">What is Lorem Ipsum?</string>
+    <string name="dd_mm_yyyy">dd/mm/yyyy</string>
+    <string name="delete_toast_message">Note may not be Saved or it may be an empty note</string>
+    <string name="edited_on">Edited On: %1$s</string>
+</resources>
