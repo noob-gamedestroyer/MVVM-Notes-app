@@ -5,15 +5,21 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.adapters.RvNotesAdapter
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
+import com.gamdestroyerr.roomnote.utils.SwipeToDelete
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.snackbar.Snackbar
+import jp.wasabeef.recyclerview.animators.SlideInDownAnimator
 import kotlinx.android.synthetic.main.fragment_note.*
 import kotlinx.android.synthetic.main.fragment_note.view.*
 import kotlinx.coroutines.CoroutineScope
@@ -24,11 +30,12 @@ import kotlinx.coroutines.launch
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
     private lateinit var noteActivityViewModel: NoteActivityViewModel
+    private lateinit var adapter: RvNotesAdapter
+
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
 
         noteActivityViewModel = (activity as NoteActivity).noteActivityViewModel
         val navController = Navigation.findNavController(view)
@@ -50,11 +57,14 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
         }
 
+        //sets up RecyclerView
         recyclerViewDisplay()
+        swipeToDelete(rv_note)
 
         view.saveFab.setOnClickListener {
             navController.navigate(R.id.action_noteFragment_to_noteContentFragment)
         }
+
     }
 
     private fun recyclerViewDisplay() {
@@ -72,13 +82,37 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun setUpRecyclerView(spanCount: Int) {
         rv_note.layoutManager =
             StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
-        rv_note.setHasFixedSize(true)
-        rv_note.setItemViewCacheSize(2)
-        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
-            rv_note.adapter = RvNotesAdapter(list)
-        })
 
+        adapter = RvNotesAdapter()
+        rv_note.adapter = adapter
+        rv_note.itemAnimator = SlideInDownAnimator().apply {
+            addDuration = 300
+        }
+        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, Observer{ list ->
+            adapter.submitList(list)
+        })
     }
 
+    private fun swipeToDelete(recyclerView: RecyclerView) {
 
+        val swipeToDeleteCallback = object : SwipeToDelete() {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.absoluteAdapterPosition
+                val note = adapter.currentList[position]
+                noteActivityViewModel.deleteNote(note)
+                val snackBar = Snackbar.make(
+                    requireView(),"Note Deleted", Snackbar.LENGTH_LONG).apply {
+                    setAction("UNDO") {
+                        noteActivityViewModel.saveNote(note)
+                    }
+                }
+                snackBar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.yellow))
+                snackBar.show()
+            }
+        }
+        val itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+    }
 }
+
+

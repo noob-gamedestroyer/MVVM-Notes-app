@@ -1,15 +1,14 @@
 package com.gamdestroyerr.roomnote.viewmodel
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gamdestroyerr.roomnote.db.Note
 import com.gamdestroyerr.roomnote.repository.NoteRepository
 import kotlinx.coroutines.launch
 
-class NoteActivityViewModel(app: Application, private val repositoryObject: NoteRepository) : AndroidViewModel(app) {
+class NoteActivityViewModel(private val repositoryObject: NoteRepository) : ViewModel() {
 
 
     fun saveNote(newNote: Note) = viewModelScope.launch {

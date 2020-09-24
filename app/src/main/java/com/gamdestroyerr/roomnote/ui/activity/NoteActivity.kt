@@ -18,7 +18,7 @@ class NoteActivity : AppCompatActivity() {
         setContentView(R.layout.activity_note)
 
         val noteRepository = NoteRepository(NoteDatabase(this))
-        val noteViewModelProviderFactory = NoteActivityViewModelFactory(application, noteRepository)
+        val noteViewModelProviderFactory = NoteActivityViewModelFactory(noteRepository)
         noteActivityViewModel = ViewModelProvider(
             this,
             noteViewModelProviderFactory

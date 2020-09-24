@@ -39,9 +39,9 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         Log.d("backStackCount", count.toString())
 
         scrollView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            if (scrollY >= oldScrollY) {
+            if (scrollY <= oldScrollY) {
                 deleteFab.hide()
-            } else if(scrollY < oldScrollY) {
+            } else if(scrollY > oldScrollY) {
                 deleteFab.show()
             }
         }

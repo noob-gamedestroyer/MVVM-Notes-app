@@ -4,30 +4,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.navigation.Navigation
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.db.Note
 import com.gamdestroyerr.roomnote.ui.fragments.NoteFragmentDirections
+import com.google.android.material.textview.MaterialTextView
 import kotlinx.android.synthetic.main.note_item_layout.view.*
 
-class RvNotesAdapter(var note: List<Note>) :
-    RecyclerView.Adapter<RvNotesAdapter.NotesViewHolder>() {
 
-    inner class NotesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+class RvNotesAdapter : ListAdapter<Note, RvNotesAdapter.NotesViewHolder>(DiffUtilCallback()){
 
-//    private val diffCallback = object :DiffUtil.ItemCallback<Note>() {
-//        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
-//            return oldItem.id == newItem.id
-//        }
-//
-//        override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
-//            return oldItem == newItem
-//        }
-//
-//    }
-//
-//    private val differ = AsyncListDiffer(this,diffCallback)
+
+    inner class NotesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var title: MaterialTextView = itemView.noteItemTitle
+        var content: MaterialTextView = itemView.noteContentItemTitle
+        var date: MaterialTextView = itemView.noteDate
+        var noteContainer: ConstraintLayout = itemView.noteItemContainer
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotesViewHolder {
         return NotesViewHolder(
@@ -37,23 +33,19 @@ class RvNotesAdapter(var note: List<Note>) :
     }
 
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
-        holder.itemView.apply {
-            noteItemContainer.animation =
-                AnimationUtils.loadAnimation(this.context, R.anim.fade_scale)
-            this.noteItemTitle.text = note[position].title
-            this.noteContentItemTitle.text = note[position].content
-            this.noteDate.text = note[position].date
-        }
-        holder.itemView.setOnClickListener {
-            val action = NoteFragmentDirections.actionNoteFragmentToNoteContentFragment()
-                .setNote(note[position])
-            Navigation.findNavController(it).navigate(action)
+
+        getItem(position).let { note ->
+            holder.itemView.animation =
+                AnimationUtils.loadAnimation(holder.itemView.context, R.anim.fade_scale)
+            holder.title.text = note.title
+            holder.content.text = note.content
+            holder.date.text = note.date
+            holder.itemView.setOnClickListener {
+                val action = NoteFragmentDirections.actionNoteFragmentToNoteContentFragment()
+                    .setNote(note)
+                Navigation.findNavController(it).navigate(action)
+            }
         }
     }
-
-    override fun getItemCount(): Int {
-        return note.size
-    }
-
 }
 
