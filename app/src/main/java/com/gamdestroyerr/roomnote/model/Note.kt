@@ -1,4 +1,4 @@
-package com.gamdestroyerr.roomnote.db
+package com.gamdestroyerr.roomnote.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

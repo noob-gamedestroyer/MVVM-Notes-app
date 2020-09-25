@@ -3,19 +3,17 @@ package com.gamdestroyerr.roomnote.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.navigation.Navigation
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.gamdestroyerr.roomnote.R
-import com.gamdestroyerr.roomnote.db.Note
+import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.fragments.NoteFragmentDirections
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.android.synthetic.main.note_item_layout.view.*
 
 
-class RvNotesAdapter : ListAdapter<Note, RvNotesAdapter.NotesViewHolder>(DiffUtilCallback()){
+class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<Note, RvNotesAdapter.NotesViewHolder>(DiffUtilCallback()){
 
 
     inner class NotesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -35,8 +33,8 @@ class RvNotesAdapter : ListAdapter<Note, RvNotesAdapter.NotesViewHolder>(DiffUti
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
 
         getItem(position).let { note ->
-            holder.itemView.animation =
-                AnimationUtils.loadAnimation(holder.itemView.context, R.anim.fade_scale)
+//            holder.itemView.animation =
+//                AnimationUtils.loadAnimation(holder.itemView.context, R.anim.fade_scale)
             holder.title.text = note.title
             holder.content.text = note.content
             holder.date.text = note.date
@@ -47,5 +45,6 @@ class RvNotesAdapter : ListAdapter<Note, RvNotesAdapter.NotesViewHolder>(DiffUti
             }
         }
     }
+
 }
 

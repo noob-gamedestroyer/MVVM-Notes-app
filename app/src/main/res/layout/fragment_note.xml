@@ -15,18 +15,78 @@
 
         <com.google.android.material.appbar.MaterialToolbar
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
             android:background="@android:color/white"
             app:layout_scrollFlags="scroll|enterAlways">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-condensed-medium"
-                android:text="@string/app_action_bar_text"
-                android:paddingStart="3dp"
-                android:textColor="@android:color/black"
-                android:textSize="30sp" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/appTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="3dp"
+                    android:fontFamily="@font/google_sans_bold"
+                    android:paddingStart="2dp"
+                    android:text="@string/app_action_bar_text"
+                    android:textColor="@android:color/black"
+                    android:textSize="30sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="RtlSymmetry" />
+
+                <LinearLayout
+                    android:id="@+id/search_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/rounded_search"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/appTitle">
+
+                    <EditText
+                        android:id="@+id/search"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:background="@null"
+                        android:layout_weight="3"
+                        android:drawableStart="@drawable/ic_round_search_24"
+                        android:drawablePadding="5dp"
+                        android:fontFamily="@font/google_sans_regular"
+                        android:hint="@string/search_here"
+                        android:imeOptions="actionSearch"
+                        android:importantForAutofill="no"
+                        android:inputType="textFilter"
+                        android:padding="5dp"
+                        android:paddingStart="18dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="18dp"
+                        android:paddingBottom="5dp"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:id="@+id/clear_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:paddingEnd="18dp"
+                        android:paddingStart="4dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:visibility="gone"
+                        android:src="@drawable/ic_round_clear_24"
+                        android:contentDescription="@string/clear" />
+
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.appbar.MaterialToolbar>
 
@@ -38,11 +98,8 @@
         android:layout_height="match_parent"
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
-        android:animationCache="false"
-        android:overScrollMode="ifContentScrolls"
         android:clipToPadding="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/saveFab"
@@ -51,7 +108,8 @@
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
-        app:backgroundTint="@color/colorPrimary"
+        android:focusable="true"
+        app:backgroundTint="@android:color/black"
         android:src="@drawable/ic_round_add_24"
         app:tint="@android:color/white"
         app:layout_behavior="@string/fab_transformation_sheet_behavior"

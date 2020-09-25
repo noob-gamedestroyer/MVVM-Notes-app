@@ -11,7 +11,7 @@ xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/appBarLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="10dp"
+        android:elevation="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -23,8 +23,7 @@ xmlns:tools="http://schemas.android.com/tools"
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:elevation="10dp">
+                android:layout_height="match_parent">
 
                 <ImageView
                     android:id="@+id/backBtn"
@@ -48,8 +47,14 @@ xmlns:tools="http://schemas.android.com/tools"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/edited_on"
+                    android:fontFamily="@font/google_sans_regular"
                     android:layout_centerInParent="true"
-                    android:paddingEnd="15dp"
+                    android:paddingStart="13dp"
+                    android:paddingTop="5dp"
+                    android:textSize="12sp"
+                    android:paddingBottom="5dp"
+                    android:paddingEnd="13dp"
+                    android:background="@drawable/date_rounded"
                     tools:ignore="RelativeOverlap" />
 
                 <ImageView
@@ -58,15 +63,16 @@ xmlns:tools="http://schemas.android.com/tools"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:layout_marginEnd="15dp"
-                    android:paddingStart="5dp"
-                    android:paddingBottom="5dp"
-                    android:paddingTop="5dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
                     android:contentDescription="@string/save"
-                    android:src="@drawable/ic_round_check_24" />
+                    android:focusable="true"
+                    android:paddingStart="5dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:src="@drawable/ic_round_check_24"
+                    tools:ignore="RtlSymmetry" />
 
             </RelativeLayout>
 
@@ -99,6 +105,7 @@ xmlns:tools="http://schemas.android.com/tools"
                 android:layout_marginBottom="10dp"
                 android:layout_marginTop="10dp"
                 android:background="@null"
+                android:fontFamily="@font/google_sans_medium"
                 android:fitsSystemWindows="true"
                 android:hint="@string/title"
                 android:importantForAutofill="no"
@@ -120,6 +127,7 @@ xmlns:tools="http://schemas.android.com/tools"
                 android:background="@null"
                 android:fitsSystemWindows="true"
                 android:hint="@string/note"
+                android:fontFamily="@font/google_sans_regular"
                 android:importantForAutofill="no"
                 android:inputType="none"
                 android:textSize="18sp"

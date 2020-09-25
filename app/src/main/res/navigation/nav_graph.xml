@@ -27,7 +27,7 @@
             app:popUpToInclusive="true" />
         <argument
             android:name="Note"
-            app:argType="com.gamdestroyerr.roomnote.db.Note"
+            app:argType="com.gamdestroyerr.roomnote.model.Note"
             app:nullable="true"
             android:defaultValue="@null" />
     </fragment>

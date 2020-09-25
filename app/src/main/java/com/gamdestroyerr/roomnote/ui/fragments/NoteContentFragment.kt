@@ -14,7 +14,7 @@ import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.gamdestroyerr.roomnote.R
-import com.gamdestroyerr.roomnote.db.Note
+import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Notes App</string>
     <string name="app_action_bar_text">My Note</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="back">back</string>
     <string name="save">save</string>
     <string name="title">Title</string>
@@ -14,5 +14,9 @@
     <string name="this_is_a_title">What is Lorem Ipsum?</string>
     <string name="dd_mm_yyyy">dd/mm/yyyy</string>
     <string name="delete_toast_message">Note may not be Saved or it may be an empty note</string>
-    <string name="edited_on">Edited On: %1$s</string>
+    <string name="edited_on">Edited on: %1$s</string>
+    <string name="search">Search</string>
+    <string name="search_here">Search Here…</string>
+
+    <string name="clear">clear</string>
 </resources>

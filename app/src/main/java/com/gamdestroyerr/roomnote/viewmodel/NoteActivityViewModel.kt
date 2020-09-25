@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gamdestroyerr.roomnote.db.Note
+import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.repository.NoteRepository
 import kotlinx.coroutines.launch
 
@@ -24,5 +24,9 @@ class NoteActivityViewModel(private val repositoryObject: NoteRepository) : View
         repositoryObject.deleteNote(existingNote)
     }
 
-    fun getAllNotes(): LiveData<MutableList<Note>> = repositoryObject.getNote()
+    fun searchNote(query: String) : LiveData<List<Note>> {
+        return repositoryObject.searchNote(query)
+    }
+
+    fun getAllNotes(): LiveData<List<Note>> = repositoryObject.getNote()
 }

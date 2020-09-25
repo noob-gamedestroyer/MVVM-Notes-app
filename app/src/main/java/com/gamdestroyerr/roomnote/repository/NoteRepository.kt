@@ -1,21 +1,26 @@
 package com.gamdestroyerr.roomnote.repository
-import android.util.Log
-import com.gamdestroyerr.roomnote.db.Note
-import com.gamdestroyerr.roomnote.db.NoteDatabase
 
-class NoteRepository (
+import com.gamdestroyerr.roomnote.db.NoteDatabase
+import com.gamdestroyerr.roomnote.model.Note
+
+class NoteRepository(
    private val db: NoteDatabase,
 ) {
 
-   suspend fun addNote(note: Note) {
-      db.getNoteDao().addNote(note)
-      Log.d("tag", "add note is called")
-   }
+    fun getNote() =
+        db.getNoteDao().getAllNote()
 
-   suspend fun updateNote(note: Note) = db.getNoteDao().updateNote(note)
+    fun searchNote(query: String) =
+        db.getNoteDao().searchNote(query)
 
-   fun getNote() = db.getNoteDao().getAllNote()
 
-   suspend fun  deleteNote(note: Note) = db.getNoteDao().deleteNote(note)
+    suspend fun addNote(note: Note) =
+        db.getNoteDao().addNote(note)
+
+    suspend fun updateNote(note: Note) =
+        db.getNoteDao().updateNote(note)
+
+    suspend fun deleteNote(note: Note) =
+        db.getNoteDao().deleteNote(note)
 
 }

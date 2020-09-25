@@ -1,7 +1,7 @@
 package com.gamdestroyerr.roomnote.adapters
 
 import androidx.recyclerview.widget.DiffUtil
-import com.gamdestroyerr.roomnote.db.Note
+import com.gamdestroyerr.roomnote.model.Note
 
 class DiffUtilCallback : DiffUtil.ItemCallback<Note>() {
     override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
