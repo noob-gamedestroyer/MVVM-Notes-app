@@ -3,6 +3,7 @@ package com.gamdestroyerr.roomnote.ui.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -38,8 +39,14 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        noteActivityViewModel = (activity as NoteActivity).noteActivityViewModel
+        appBarLayout1.visibility = View.GONE
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(1)
+            appBarLayout1.visibility = View.VISIBLE
+        }
+        val activity = activity as NoteActivity
+        activity.window.statusBarColor = Color.TRANSPARENT
+        noteActivityViewModel = activity.noteActivityViewModel
         val navController = Navigation.findNavController(view)
 
         val count = parentFragmentManager.backStackEntryCount
@@ -50,11 +57,11 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             val result = bundle.getString("bundleKey")
             if (result!!.isNotEmpty()) {
 
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(700)
+                CoroutineScope(Dispatchers.Unconfined).launch {
+                    delay(10)
                     Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
-                        duration = 2500
                         animationMode = Snackbar.ANIMATION_MODE_FADE
+                        setAnchorView(R.id.saveFab)
                     }.show()
                 }
             }
@@ -79,6 +86,9 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
 
             override fun afterTextChanged(s: Editable?) {
+                if (s.toString().isEmpty()){
+                    clear_text.visibility = View.GONE
+                }
             }
 
         })
@@ -93,17 +103,54 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             search.apply {
                 text.clear()
                 hideKeyboard()
-                this.clearFocus()
+                clearFocus()
             }
             it.visibility = View.GONE
         }
 
         view.saveFab.setOnClickListener {
+            appBarLayout1.visibility = View.INVISIBLE
             navController.navigate(R.id.action_noteFragment_to_noteContentFragment)
         }
-    }
+        view.innerFab.setOnClickListener {
+            navController.navigate(R.id.action_noteFragment_to_noteContentFragment)
+        }
+
+        rv_note.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
+            when {
+                scrollY > oldScrollY -> {
+                    chat_fab_text!!.visibility = View.GONE
+
+                }
+                scrollX == scrollY -> {
+                    chat_fab_text!!.visibility = View.VISIBLE
+
+                }
+                else -> {
+                    chat_fab_text!!.visibility = View.VISIBLE
+
+                }
+            }
+        }
+
+    } //onViewCreated closed
 
     private fun recyclerViewDisplay() {
+
+        fun setUpRecyclerView(spanCount: Int) {
+            rv_note.layoutManager =
+                StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+
+            adapter = RvNotesAdapter()
+            rv_note.adapter = adapter
+            rv_note.itemAnimator = SlideInUpAnimator().apply {
+                addDuration = 250
+            }
+            noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
+                adapter.submitList(list)
+            })
+        }
+
         @SuppressLint("SwitchIntDef")
         when (resources.configuration.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
@@ -113,20 +160,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 setUpRecyclerView(3)
             }
         }
-    }
-
-    private fun setUpRecyclerView(spanCount: Int) {
-        rv_note.layoutManager =
-            StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
-
-        adapter = RvNotesAdapter()
-        rv_note.adapter = adapter
-        rv_note.itemAnimator = SlideInUpAnimator().apply {
-            addDuration = 250
-        }
-        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
-            adapter.submitList(list)
-        })
     }
 
     private fun swipeToDelete(recyclerView: RecyclerView) {
@@ -142,6 +175,8 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     setAction("UNDO") {
                         noteActivityViewModel.saveNote(note)
                     }
+                    animationMode = Snackbar.ANIMATION_MODE_FADE
+                    setAnchorView(R.id.saveFab)
                 }
                 snackBar.setActionTextColor(
                     ContextCompat.getColor(
@@ -166,6 +201,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         )
     }
 
-}
+} //class NoteFragment closed
 
 

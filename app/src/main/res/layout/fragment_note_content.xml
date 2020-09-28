@@ -5,6 +5,8 @@ xmlns:app="http://schemas.android.com/apk/res-auto"
 xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:id="@+id/noteContentFragmentParent"
     tools:context=".ui.fragments.NoteContentFragment">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -17,6 +19,7 @@ xmlns:tools="http://schemas.android.com/tools"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarFragmentNoteContent"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:background="@android:color/white">
@@ -146,8 +149,9 @@ xmlns:tools="http://schemas.android.com/tools"
         app:fabSize="normal"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        app:backgroundTint="@android:color/holo_red_light"
-        android:src="@drawable/ic_round_delete_forever_24"
+        app:backgroundTint="@android:color/black"
+        app:tint="@android:color/white"
+        android:src="@drawable/ic_round_add_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

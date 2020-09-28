@@ -3,17 +3,23 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ui.fragments.NoteFragment">
 
     <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout2"
+        android:id="@+id/appBarLayout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:animateLayoutChanges="true"
+        android:background="@android:color/white"
         app:liftOnScroll="true">
 
         <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarFragmentNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/white"
@@ -27,7 +33,7 @@
                     android:id="@+id/appTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="15dp"
                     android:layout_marginStart="3dp"
                     android:fontFamily="@font/google_sans_bold"
                     android:paddingStart="2dp"
@@ -42,9 +48,9 @@
                     android:id="@+id/search_container"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="13dp"
                     android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="25dp"
                     android:background="@drawable/rounded_search"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -54,9 +60,9 @@
                     <EditText
                         android:id="@+id/search"
                         android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:background="@null"
+                        android:layout_height="47dp"
                         android:layout_weight="3"
+                        android:background="@null"
                         android:drawableStart="@drawable/ic_round_search_24"
                         android:drawablePadding="5dp"
                         android:fontFamily="@font/google_sans_regular"
@@ -75,14 +81,14 @@
                         android:id="@+id/clear_text"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:paddingEnd="18dp"
-                        android:paddingStart="4dp"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:visibility="gone"
+                        android:clickable="true"
+                        android:contentDescription="@string/clear"
+                        android:focusable="true"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="18dp"
                         android:src="@drawable/ic_round_clear_24"
-                        android:contentDescription="@string/clear" />
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
@@ -96,23 +102,53 @@
         android:id="@+id/rv_note"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="5dp"
-        android:paddingEnd="5dp"
+        android:paddingBottom="5dp"
         android:clipToPadding="false"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <LinearLayout
         android:id="@+id/saveFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:animateLayoutChanges="true"
+        android:clickable="true"
         android:focusable="true"
-        app:backgroundTint="@android:color/black"
-        android:src="@drawable/ic_round_add_24"
-        app:tint="@android:color/white"
-        app:layout_behavior="@string/fab_transformation_sheet_behavior"
-        tools:ignore="RtlHardcoded"/>
+        android:background="@drawable/fab_btn_corner"
+        android:backgroundTint="@android:color/black"
+        android:clipToPadding="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:outlineProvider="none">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/innerFab"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            app:backgroundTint="@android:color/black"
+            app:borderWidth="0dp"
+            app:elevation="0dp"
+            app:fabSize="normal"
+            app:tint="@android:color/white"
+            android:src="@drawable/ic_round_add_24"
+            app:useCompatPadding="false"/>
+
+        <TextView
+            android:id="@+id/chat_fab_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/google_sans_regular"
+            android:paddingStart="0dp"
+            android:paddingEnd="20dp"
+            android:text="@string/add_note"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

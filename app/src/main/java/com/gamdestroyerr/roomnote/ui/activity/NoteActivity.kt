@@ -16,7 +16,6 @@ class NoteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note)
-
         val noteRepository = NoteRepository(NoteDatabase(this))
         val noteViewModelProviderFactory = NoteActivityViewModelFactory(noteRepository)
         noteActivityViewModel = ViewModelProvider(

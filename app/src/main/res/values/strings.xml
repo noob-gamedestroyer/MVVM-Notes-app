@@ -19,4 +19,6 @@
     <string name="search_here">Search Here…</string>
 
     <string name="clear">clear</string>
+    <string name="add_color">Add Color</string>
+    <string name="add_note">Add Note</string>
 </resources>

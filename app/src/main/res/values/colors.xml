@@ -4,4 +4,32 @@
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#151515</color>
     <color name="yellow">#FBC02D</color>
+
+<!--color palette-->
+    <color name="purple">#D4C4E3</color>
+    <color name="darkPurple">#9387F5</color>
+    <color name="blue">#A8DAF0</color>
+    <color name="peach">#F0C390</color>
+    <color name="green">#C3F09C</color>
+    <color name="orangeRed">#F3722C</color>
+    <color name="yellowOrange">#F8961E</color>
+    <color name="MangoTango">#F9844A</color>
+    <color name="maizeCrayola">#F9C74F</color>
+    <color name="Pistachio">#90BE6D</color>
+
+
+    <array name="color_picker">
+        <item>@color/white</item>
+        <item>@color/peach</item>
+        <item>@color/green</item>
+        <item>@color/purple</item>
+        <item>@color/darkPurple</item>
+        <item>@color/blue</item>
+        <item>@color/orangeRed</item>
+        <item>@color/yellowOrange</item>
+        <item>@color/MangoTango</item>
+        <item>@color/maizeCrayola</item>
+        <item>@color/Pistachio</item>
+    </array>
+
 </resources>

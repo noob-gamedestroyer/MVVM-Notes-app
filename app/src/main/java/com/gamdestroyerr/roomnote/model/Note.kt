@@ -13,5 +13,7 @@ data class Note(
 
     val content: String,
 
-    val date: String
+    val date: String,
+
+    val color: Int = -1,
 ) : Serializable

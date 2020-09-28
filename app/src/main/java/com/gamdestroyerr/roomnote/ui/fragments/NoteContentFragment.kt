@@ -1,13 +1,12 @@
 package com.gamdestroyerr.roomnote.ui.fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
@@ -17,9 +16,14 @@ import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.android.synthetic.main.bottom_sheet_dialog.view.*
 import kotlinx.android.synthetic.main.fragment_note_content.*
 import kotlinx.android.synthetic.main.fragment_note_content.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,11 +33,20 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private lateinit var noteActivityViewModel: NoteActivityViewModel
     private var note: Note? = null
     private lateinit var result: String
+    private var color = -1
 
+    @SuppressLint("InflateParams")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        appBarLayout2.visibility = View.INVISIBLE
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(10)
+            appBarLayout2.visibility = View.VISIBLE
+        }
+
         navController = Navigation.findNavController(view)
-        noteActivityViewModel = (activity as NoteActivity).noteActivityViewModel
+        val activity = activity as NoteActivity
+        noteActivityViewModel = activity.noteActivityViewModel
 
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
@@ -55,49 +68,53 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             saveNoteViaFragmentAndGoBack()
         }
 
-        deleteFab.setOnClickListener {
-            if (note != null) {
-                MaterialAlertDialogBuilder(requireContext()).apply {
-                    background = getDrawable(requireContext(), R.drawable.note_item_rounded)
-                    setTitle("Delete Note?")
-                    setMessage("You cannot Undo this!!")
-                    setIcon(getDrawable(requireContext(), R.drawable.ic_round_delete_24))
-                    setPositiveButton("Delete") { _: DialogInterface, _: Int ->
+        view.deleteFab.setOnClickListener {
+            val bottomSheetDialog = BottomSheetDialog(
+                requireContext(),
+                R.style.BottomSheetDialogTheme
+            )
+            val bottomSheetView : View = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
 
-                        noteActivityViewModel.deleteNote(
-                            Note(
-                                note!!.id,
-                                note!!.title,
-                                note!!.content,
-                                note!!.date
-                            )
-                        )
-                        result = "Note Deleted"
-                        setFragmentResult("key", bundleOf("bundleKey" to result))
-                        navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
-
-                    }
-                    setNegativeButton("cancel") { dialogInterface: DialogInterface, _: Int ->
-                        dialogInterface.dismiss()
-                    }
-                }.show()
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.delete_toast_message),
-                    Toast.LENGTH_SHORT
-                ).show()
+            bottomSheetView.colorPicker.setSelectedColor(color)
+            bottomSheetView.colorPicker.setOnColorSelectedListener {
+                color = it
+                noteContentFragmentParent.apply {
+                    setBackgroundColor(color)
+                    activity.window.statusBarColor = color
+                    toolbarFragmentNoteContent.setBackgroundColor(color)
+                }
+            }
+            bottomSheetDialog.setContentView(bottomSheetView)
+            bottomSheetDialog.show()
+            bottomSheetDialog.setOnDismissListener {
+                Toast.makeText(requireContext(), "Color Set", Toast.LENGTH_SHORT).show()
             }
         }
+
+        //opens with existing note item
         arguments?.let {
             note = NoteContentFragmentArgs.fromBundle(it).note
             titleTxtView.setText(note?.title)
             noteContentTxtView.setText(note?.content)
+
             if (note == null){
                 lastEdited.text =
                     getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
             } else {
                 lastEdited.text = getString(R.string.edited_on, note?.date)
+                color = note!!.color
+                noteContentFragmentParent.apply {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(10)
+                        setBackgroundColor(color)
+                    }
+                }
+                CoroutineScope(Dispatchers.Main).launch {
+                    delay(270)
+                    activity.window.statusBarColor = color
+                }
+                toolbarFragmentNoteContent.setBackgroundColor(color)
+
             }
         }
     }
@@ -120,7 +137,8 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         0,
                         titleTxtView.text.toString(),
                         noteContentTxtView.text.toString(),
-                        currentDate
+                        currentDate,
+                        color
                     )
                 )
                 result = "Note Saved"
@@ -133,10 +151,10 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         note!!.id,
                         titleTxtView.text.toString(),
                         noteContentTxtView.text.toString(),
-                        currentDate
+                        currentDate,
+                        color
                     )
                 )
-
                 navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
             }
         }
