@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/noteContentFragmentParent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:id="@+id/noteContentFragmentParent"
     tools:context=".ui.fragments.NoteContentFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,7 +18,7 @@ xmlns:tools="http://schemas.android.com/tools"
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbarFragmentNoteContent"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="70dp"
             android:background="@android:color/white">
 
             <RelativeLayout
@@ -35,13 +32,13 @@ xmlns:tools="http://schemas.android.com/tools"
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     android:layout_gravity="start"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
+                    android:contentDescription="@string/back"
                     android:focusable="true"
+                    android:paddingTop="5dp"
                     android:paddingEnd="5dp"
                     android:paddingBottom="5dp"
-                    android:paddingTop="5dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/back"
                     android:src="@drawable/ic_round_arrow_back_24"
                     tools:ignore="RtlSymmetry" />
 
@@ -49,15 +46,15 @@ xmlns:tools="http://schemas.android.com/tools"
                     android:id="@+id/lastEdited"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/edited_on"
-                    android:fontFamily="@font/google_sans_regular"
                     android:layout_centerInParent="true"
+                    android:background="@drawable/date_rounded"
+                    android:fontFamily="@font/google_sans_regular"
                     android:paddingStart="13dp"
                     android:paddingTop="5dp"
-                    android:textSize="12sp"
-                    android:paddingBottom="5dp"
                     android:paddingEnd="13dp"
-                    android:background="@drawable/date_rounded"
+                    android:paddingBottom="5dp"
+                    android:text="@string/edited_on"
+                    android:textSize="12sp"
                     tools:ignore="RelativeOverlap" />
 
                 <ImageView
@@ -86,59 +83,51 @@ xmlns:tools="http://schemas.android.com/tools"
     <ScrollView
         android:id="@id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout2">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/scrollWrapper"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clipToPadding="false">
+            android:orientation="vertical">
 
             <EditText
                 android:id="@+id/titleTxtView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginEnd="20dp"
                 android:layout_marginBottom="10dp"
-                android:layout_marginTop="10dp"
                 android:background="@null"
                 android:fontFamily="@font/google_sans_medium"
-                android:fitsSystemWindows="true"
                 android:hint="@string/title"
                 android:importantForAutofill="no"
                 android:inputType="none"
-                android:textSize="25sp"
-                app:layout_constraintEnd_toEndOf="@id/scrollWrapper"
-                app:layout_constraintStart_toStartOf="@id/scrollWrapper"
-                app:layout_constraintTop_toTopOf="@id/scrollWrapper"
-                app:layout_constraintBottom_toTopOf="@id/noteContentTxtView"/>
+                android:textSize="22sp" />
 
             <EditText
                 android:id="@+id/noteContentTxtView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="22dp"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginEnd="20dp"
-                android:paddingBottom="10dp"
                 android:background="@null"
-                android:fitsSystemWindows="true"
-                android:hint="@string/note"
+                android:fitsSystemWindows="false"
                 android:fontFamily="@font/google_sans_regular"
+                android:hint="@string/note"
                 android:importantForAutofill="no"
                 android:inputType="none"
-                android:textSize="18sp"
-                app:layout_constraintEnd_toEndOf="@id/scrollWrapper"
-                app:layout_constraintStart_toStartOf="@id/scrollWrapper"
-                app:layout_constraintTop_toBottomOf="@id/titleTxtView" />
+                android:paddingBottom="2dp"
+                android:textSize="16sp" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
 
     </ScrollView>
 
@@ -146,13 +135,12 @@ xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/deleteFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:fabSize="normal"
+        android:layout_gravity="end|bottom"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        app:backgroundTint="@android:color/black"
-        app:tint="@android:color/white"
         android:src="@drawable/ic_round_add_24"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:backgroundTint="@android:color/black"
+        app:fabSize="normal"
+        app:tint="@android:color/white" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

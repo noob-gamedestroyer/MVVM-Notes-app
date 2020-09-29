@@ -51,14 +51,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
 
-        scrollView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            if (scrollY <= oldScrollY) {
-                deleteFab.hide()
-            } else if(scrollY > oldScrollY) {
-                deleteFab.show()
-            }
-        }
-
         view.saveBtn.setOnClickListener {
             hideKeyboard()
             saveNoteViaFragmentAndGoBack()
@@ -73,7 +65,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 requireContext(),
                 R.style.BottomSheetDialogTheme
             )
-            val bottomSheetView : View = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
+            val bottomSheetView: View = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
 
             bottomSheetView.colorPicker.setSelectedColor(color)
             bottomSheetView.colorPicker.setOnColorSelectedListener {
@@ -82,6 +74,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     setBackgroundColor(color)
                     activity.window.statusBarColor = color
                     toolbarFragmentNoteContent.setBackgroundColor(color)
+                    appBarLayout2.setBackgroundColor(color)
                 }
             }
             bottomSheetDialog.setContentView(bottomSheetView)
@@ -97,7 +90,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             titleTxtView.setText(note?.title)
             noteContentTxtView.setText(note?.content)
 
-            if (note == null){
+            if (note == null) {
                 lastEdited.text =
                     getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
             } else {
@@ -108,12 +101,13 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         delay(10)
                         setBackgroundColor(color)
                     }
-                }
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(270)
-                    activity.window.statusBarColor = color
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(300)
+                        activity.window.statusBarColor = color
+                    }
                 }
                 toolbarFragmentNoteContent.setBackgroundColor(color)
+                appBarLayout2.setBackgroundColor(color)
 
             }
         }
@@ -127,7 +121,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         ) {
             result = "Empty Note Discarded"
             setFragmentResult("key", bundleOf("bundleKey" to result))
-            navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+            navController.popBackStack()
 
         } else {
 
@@ -143,7 +137,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 )
                 result = "Note Saved"
                 setFragmentResult("key", bundleOf("bundleKey" to result))
-                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+                navController.popBackStack()
 
             } else {
                 noteActivityViewModel.updateNote(
@@ -155,7 +149,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         color
                     )
                 )
-                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+                navController.popBackStack()
             }
         }
     }

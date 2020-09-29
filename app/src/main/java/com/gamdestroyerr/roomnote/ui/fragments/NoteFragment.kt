@@ -24,7 +24,7 @@ import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.utils.SwipeToDelete
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.snackbar.Snackbar
-import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
+import jp.wasabeef.recyclerview.animators.SlideInDownAnimator
 import kotlinx.android.synthetic.main.fragment_note.*
 import kotlinx.android.synthetic.main.fragment_note.view.*
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +45,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             appBarLayout1.visibility = View.VISIBLE
         }
         val activity = activity as NoteActivity
-        activity.window.statusBarColor = Color.TRANSPARENT
+        activity.window.statusBarColor = Color.WHITE
         noteActivityViewModel = activity.noteActivityViewModel
         val navController = Navigation.findNavController(view)
 
@@ -86,7 +86,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
 
             override fun afterTextChanged(s: Editable?) {
-                if (s.toString().isEmpty()){
+                if (s.toString().isEmpty()) {
                     clear_text.visibility = View.GONE
                 }
             }
@@ -143,7 +143,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
             adapter = RvNotesAdapter()
             rv_note.adapter = adapter
-            rv_note.itemAnimator = SlideInUpAnimator().apply {
+            rv_note.itemAnimator = SlideInDownAnimator().apply {
                 addDuration = 250
             }
             noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
