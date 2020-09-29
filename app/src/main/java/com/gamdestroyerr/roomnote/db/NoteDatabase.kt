@@ -1,7 +1,6 @@
 package com.gamdestroyerr.roomnote.db
 
 import android.content.Context
-import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -25,7 +24,6 @@ abstract class NoteDatabase : RoomDatabase() {
         operator fun invoke (context: Context) = instance ?: synchronized(LOCK) {
             instance ?: createDatabase(context).also {
                 instance = it
-                Log.d("tag", "DATABASE IS CREATED")
             }
         }
 

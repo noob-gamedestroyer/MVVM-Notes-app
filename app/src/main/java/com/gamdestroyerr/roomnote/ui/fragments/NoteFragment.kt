@@ -55,7 +55,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         //Receives confirmation from the noteContentFragment
         setFragmentResultListener("key") { _, bundle ->
             val result = bundle.getString("bundleKey")
-            if (result!!.isNotEmpty()) {
+            if (result!!.isNotEmpty() && result == "Note Saved") {
 
                 CoroutineScope(Dispatchers.Unconfined).launch {
                     delay(10)
@@ -65,6 +65,16 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     }.show()
                 }
             }
+//          else if (result == "Refreshing..."){
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
+//                        animationMode = Snackbar.ANIMATION_MODE_FADE
+//                        setAnchorView(R.id.saveFab)
+//                    }.show()
+//                    delay(2000)
+//                    recyclerViewDisplay()
+//                }
+//            }
         }
         //sets up RecyclerView
         recyclerViewDisplay()
@@ -77,12 +87,21 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                clear_text.visibility = View.VISIBLE
-                val text = s.toString()
-                val query = "%$text%"
-                noteActivityViewModel.searchNote(query).observe(viewLifecycleOwner, {
-                    adapter.submitList(it)
-                })
+                if (s.toString().isNotEmpty()) {
+                    clear_text.visibility = View.VISIBLE
+                    val text = s.toString()
+                    val query = "%$text%"
+                    if (query.isNotEmpty()) {
+                        noteActivityViewModel.searchNote(query).observe(viewLifecycleOwner, {
+                            adapter.submitList(it)
+                        })
+                    } else {
+                        observerDataChanges()
+                    }
+                }
+                else {
+                    observerDataChanges()
+                }
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -104,6 +123,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 text.clear()
                 hideKeyboard()
                 clearFocus()
+                observerDataChanges()
             }
             it.visibility = View.GONE
         }
@@ -136,21 +156,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     } //onViewCreated closed
 
     private fun recyclerViewDisplay() {
-
-        fun setUpRecyclerView(spanCount: Int) {
-            rv_note.layoutManager =
-                StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
-
-            adapter = RvNotesAdapter()
-            rv_note.adapter = adapter
-            rv_note.itemAnimator = SlideInDownAnimator().apply {
-                addDuration = 250
-            }
-            noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
-                adapter.submitList(list)
-            })
-        }
-
         @SuppressLint("SwitchIntDef")
         when (resources.configuration.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
@@ -162,6 +167,29 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         }
     }
 
+    private fun setUpRecyclerView(spanCount: Int) {
+        rv_note.layoutManager =
+            StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+
+        adapter = RvNotesAdapter()
+        rv_note.adapter = adapter
+        rv_note.itemAnimator = SlideInDownAnimator().apply {
+            addDuration = 250
+        }
+        observerDataChanges()
+    }
+
+    private fun observerDataChanges(){
+        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
+            if (list.isEmpty()){
+
+            } else {
+                adapter.submitList(list)
+            }
+
+        })
+    }
+
     private fun swipeToDelete(recyclerView: RecyclerView) {
 
         val swipeToDeleteCallback = object : SwipeToDelete() {
@@ -169,6 +197,14 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 val position = viewHolder.absoluteAdapterPosition
                 val note = adapter.currentList[position]
                 noteActivityViewModel.deleteNote(note)
+                search.apply {
+                    text.clear()
+                    hideKeyboard()
+                    clearFocus()
+                }
+                if (search.text.toString().isEmpty()){
+                    observerDataChanges()
+                }
                 val snackBar = Snackbar.make(
                     requireView(), "Note Deleted", Snackbar.LENGTH_LONG
                 ).apply {

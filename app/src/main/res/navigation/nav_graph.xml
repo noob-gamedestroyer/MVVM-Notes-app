@@ -20,6 +20,11 @@
         android:name="com.gamdestroyerr.roomnote.ui.fragments.NoteContentFragment"
         android:label="fragment_note_content"
         tools:layout="@layout/fragment_note_content">
+        <action
+            android:id="@+id/action_noteContentFragment_to_noteFragment"
+            app:destination="@id/noteFragment"
+            app:popUpTo="@id/noteFragment"
+            app:popUpToInclusive="true" />
         <argument
             android:name="Note"
             app:argType="com.gamdestroyerr.roomnote.model.Note"

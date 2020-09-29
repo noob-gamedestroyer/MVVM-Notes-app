@@ -13,7 +13,6 @@ class NoteRepository(
     fun searchNote(query: String) =
         db.getNoteDao().searchNote(query)
 
-
     suspend fun addNote(note: Note) =
         db.getNoteDao().addNote(note)
 

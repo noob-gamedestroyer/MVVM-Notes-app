@@ -39,9 +39,13 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         appBarLayout2.visibility = View.INVISIBLE
+        noteContentTxtView.visibility = View.INVISIBLE
+        titleTxtView.visibility = View.INVISIBLE
         CoroutineScope(Dispatchers.Main).launch {
             delay(10)
             appBarLayout2.visibility = View.VISIBLE
+            noteContentTxtView.visibility = View.VISIBLE
+            titleTxtView.visibility = View.VISIBLE
         }
 
         navController = Navigation.findNavController(view)
@@ -102,7 +106,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         setBackgroundColor(color)
                     }
                     CoroutineScope(Dispatchers.Main).launch {
-                        delay(300)
+                        delay(295)
                         activity.window.statusBarColor = color
                     }
                 }
@@ -121,7 +125,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         ) {
             result = "Empty Note Discarded"
             setFragmentResult("key", bundleOf("bundleKey" to result))
-            navController.popBackStack()
+            navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
 
         } else {
 
@@ -135,11 +139,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         color
                     )
                 )
+                Log.d("tag", "new note saved")
                 result = "Note Saved"
                 setFragmentResult("key", bundleOf("bundleKey" to result))
-                navController.popBackStack()
+                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
 
-            } else {
+            } else if (note != null) {
                 noteActivityViewModel.updateNote(
                     Note(
                         note!!.id,
@@ -149,8 +154,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         color
                     )
                 )
-                navController.popBackStack()
+                result = "Refreshing..."
+                setFragmentResult("key", bundleOf("bundleKey" to result))
+                Log.d("tag", "new Note Saved")
+                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
             }
+            Log.d("tag", "skipped")
         }
     }
 

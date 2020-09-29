@@ -138,7 +138,7 @@
         android:layout_gravity="end|bottom"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:src="@drawable/ic_round_add_24"
+        android:src="@drawable/ic_baseline_format_paint_24"
         app:backgroundTint="@android:color/black"
         app:fabSize="normal"
         app:tint="@android:color/white" />
