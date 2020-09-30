@@ -33,8 +33,14 @@ __MVVM__ - MVVM stands for Model, View, ViewModel. MVVM is one of the architectu
 5. RecyclerView Animations
 
 ## App ScreenShots:-
+
+![ezgif com-gif-maker](https://user-images.githubusercontent.com/60071765/94704102-302c8d00-035d-11eb-9035-e04487341b14.gif)
+![ezgif com-gif-maker (1)](https://user-images.githubusercontent.com/60071765/94704994-28211d00-035e-11eb-859a-7ed354b1e2be.gif)
+
+
+
+
 ![screenshot_20200930-192853_not](https://user-images.githubusercontent.com/60071765/94698129-9feb4980-0356-11eb-836b-859bfc29bd01.png)
-![screenshot_20200930-192937_not](https://user-images.githubusercontent.com/60071765/94698523-07a19480-0357-11eb-88be-9bb77b1ee439.png)
 ![screenshot_20200930-192914_not](https://user-images.githubusercontent.com/60071765/94698702-33bd1580-0357-11eb-873e-df51a27ff3e7.png)
 
 ## Libraries Used:-
