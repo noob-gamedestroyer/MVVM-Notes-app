@@ -154,8 +154,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         color
                     )
                 )
-                result = "Refreshing..."
-                setFragmentResult("key", bundleOf("bundleKey" to result))
                 Log.d("tag", "new Note Saved")
                 navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
             }

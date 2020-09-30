@@ -21,12 +21,11 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
 ){
 
     inner class NotesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var title: MaterialTextView = itemView.noteItemTitle
-        var content: MaterialTextView = itemView.noteContentItemTitle
-        var date: MaterialTextView = itemView.noteDate
+        val title: MaterialTextView = itemView.noteItemTitle
+        val content: MaterialTextView = itemView.noteContentItemTitle
+        val date: MaterialTextView = itemView.noteDate
         val drawable = ContextCompat.getDrawable(itemView.context, R.drawable.note_item_rounded)
-        var noteContainer: ConstraintLayout = itemView.noteItemContainer
-
+        val noteContainer: ConstraintLayout = itemView.noteItemContainer
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotesViewHolder {
@@ -41,8 +40,6 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
         getItem(position).let { note ->
 
             holder.apply {
-//                 itemView.animation =
-//                 AnimationUtils.loadAnimation(holder.itemView.context, R.anim.fade_scale)
                 title.text = note.title
                 content.text = note.content
                 date.text = note.date

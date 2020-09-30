@@ -55,9 +55,9 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         //Receives confirmation from the noteContentFragment
         setFragmentResultListener("key") { _, bundle ->
             val result = bundle.getString("bundleKey")
-            if (result!!.isNotEmpty() && result == "Note Saved") {
+            if (result!!.isNotEmpty()) {
 
-                CoroutineScope(Dispatchers.Unconfined).launch {
+                CoroutineScope(Dispatchers.Main).launch {
                     delay(10)
                     Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
                         animationMode = Snackbar.ANIMATION_MODE_FADE
@@ -84,6 +84,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         search.addTextChangedListener(object : TextWatcher {
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                no_data.visibility = View.GONE
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -119,13 +120,9 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             return@setOnEditorActionListener true
         }
         clear_text.setOnClickListener {
-            search.apply {
-                text.clear()
-                hideKeyboard()
-                clearFocus()
-                observerDataChanges()
-            }
+            clearTxtFunction()
             it.visibility = View.GONE
+            no_data.visibility = View.GONE
         }
 
         view.saveFab.setOnClickListener {
@@ -182,10 +179,9 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun observerDataChanges(){
         noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
             if (list.isEmpty()){
-
-            } else {
-                adapter.submitList(list)
+                no_data.visibility = View.VISIBLE
             }
+            adapter.submitList(list)
 
         })
     }
@@ -198,7 +194,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 val note = adapter.currentList[position]
                 noteActivityViewModel.deleteNote(note)
                 search.apply {
-                    text.clear()
                     hideKeyboard()
                     clearFocus()
                 }
@@ -210,6 +205,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 ).apply {
                     setAction("UNDO") {
                         noteActivityViewModel.saveNote(note)
+                        no_data.visibility = View.GONE
                     }
                     animationMode = Snackbar.ANIMATION_MODE_FADE
                     setAnchorView(R.id.saveFab)
@@ -235,6 +231,15 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             requireView().applicationWindowToken,
             0
         )
+    }
+
+    private fun clearTxtFunction(){
+        search.apply {
+            text.clear()
+            hideKeyboard()
+            clearFocus()
+            observerDataChanges()
+        }
     }
 
 } //class NoteFragment closed

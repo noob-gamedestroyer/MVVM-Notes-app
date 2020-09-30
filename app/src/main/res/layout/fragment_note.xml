@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/white"
-            app:layout_scrollFlags="scroll|enterAlways">
+            app:layout_scrollFlags="scroll">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -56,7 +56,7 @@
                     <EditText
                         android:id="@+id/search"
                         android:layout_width="0dp"
-                        android:layout_height="55dp"
+                        android:layout_height="50dp"
                         android:layout_weight="3"
                         android:background="@null"
                         android:drawableStart="@drawable/ic_round_search_24"
@@ -103,6 +103,29 @@
         android:paddingEnd="6dp"
         android:paddingBottom="5dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/no_data"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_no_data"
+            android:visibility="gone"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.6"
+            tools:visibility="gone"
+            android:contentDescription="@string/no_data_image" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/saveFab"
