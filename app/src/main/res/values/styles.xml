@@ -22,4 +22,11 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <style name="splash" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimaryDark">@android:color/white</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
 </resources>
