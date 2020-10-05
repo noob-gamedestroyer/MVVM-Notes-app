@@ -1,11 +1,9 @@
 package com.gamdestroyerr.roomnote.ui.fragments
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -15,6 +13,7 @@ import androidx.navigation.Navigation
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
+import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.android.synthetic.main.bottom_sheet_dialog.view.*
@@ -56,11 +55,11 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         Log.d("backStackCount", count.toString())
 
         view.saveBtn.setOnClickListener {
-            hideKeyboard()
+            requireView().hideKeyboard()
             saveNoteViaFragmentAndGoBack()
         }
         view.backBtn.setOnClickListener {
-            hideKeyboard()
+            requireView().hideKeyboard()
             saveNoteViaFragmentAndGoBack()
         }
 
@@ -81,10 +80,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     appBarLayout2.setBackgroundColor(color)
                 }
             }
-            bottomSheetDialog.setContentView(bottomSheetView)
-            bottomSheetDialog.show()
-            bottomSheetDialog.setOnDismissListener {
-                Toast.makeText(requireContext(), "Color Set", Toast.LENGTH_SHORT).show()
+            with(bottomSheetDialog) {
+                setContentView(bottomSheetView)
+                show()
+                setOnDismissListener {
+                    Toast.makeText(requireContext(), "Color Set", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -159,16 +160,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             }
             Log.d("tag", "skipped")
         }
-    }
-
-    private fun hideKeyboard() {
-        val inputMethodManager =
-            (activity as NoteActivity).getSystemService(Context.INPUT_METHOD_SERVICE)
-                    as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(
-            requireView().applicationWindowToken,
-            0
-        )
     }
 
 }
