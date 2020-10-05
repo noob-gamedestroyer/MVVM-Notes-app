@@ -1,7 +1,6 @@
 package com.gamdestroyerr.roomnote.ui.fragments
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -10,7 +9,6 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
@@ -22,6 +20,7 @@ import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.adapters.RvNotesAdapter
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.utils.SwipeToDelete
+import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator
@@ -115,7 +114,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         search.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 v.clearFocus()
-                hideKeyboard()
+                requireView().hideKeyboard()
             }
             return@setOnEditorActionListener true
         }
@@ -136,15 +135,15 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         rv_note.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
             when {
                 scrollY > oldScrollY -> {
-                    chat_fab_text!!.visibility = View.GONE
+                    chat_fab_text?.visibility = View.GONE
 
                 }
                 scrollX == scrollY -> {
-                    chat_fab_text!!.visibility = View.VISIBLE
+                    chat_fab_text?.visibility = View.VISIBLE
 
                 }
                 else -> {
-                    chat_fab_text!!.visibility = View.VISIBLE
+                    chat_fab_text?.visibility = View.VISIBLE
 
                 }
             }
@@ -221,16 +220,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         }
         val itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
         itemTouchHelper.attachToRecyclerView(recyclerView)
-    }
-
-    private fun hideKeyboard() {
-        val inputMethodManager =
-            (activity as NoteActivity).getSystemService(Context.INPUT_METHOD_SERVICE)
-                    as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(
-            requireView().applicationWindowToken,
-            0
-        )
     }
 
     private fun clearTxtFunction(){
