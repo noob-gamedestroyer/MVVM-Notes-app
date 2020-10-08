@@ -24,4 +24,5 @@
     <string name="no_data_image">no data image</string>
     <string name="noteContentImage">NoteContentImage</string>
     <string name="add_image">Add Image</string>
+    <string name="delete">Delete</string>
 </resources>

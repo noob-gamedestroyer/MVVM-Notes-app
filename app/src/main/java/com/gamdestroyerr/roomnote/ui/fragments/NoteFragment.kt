@@ -38,23 +38,28 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        appBarLayout1.visibility = View.GONE
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(1)
-            appBarLayout1.visibility = View.VISIBLE
-        }
+
         val activity = activity as NoteActivity
         activity.window.statusBarColor = Color.WHITE
         noteActivityViewModel = activity.noteActivityViewModel
         val navController = Navigation.findNavController(view)
 
+        appBarLayout1.visibility = View.GONE
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(1)
+            appBarLayout1.visibility = View.VISIBLE
+        }
+
+
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
+        noteActivityViewModel.saveImage(null)  //temporary fix
+
 
         //Receives confirmation from the noteContentFragment
         setFragmentResultListener("key") { _, bundle ->
             val result = bundle.getString("bundleKey")
-            if (result == "Note Saved" || result == "Note Updated") {
+            if (result == "Note Saved" || result == "Note Updated" || result == "Empty Note Discarded") {
 
                 CoroutineScope(Dispatchers.Main).launch {
                     delay(10)
@@ -63,18 +68,21 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                         setAnchorView(R.id.saveFab)
                     }.show()
                 }
-            }
-          else if (result == "Content Changed"){
+            } else if (result == "Content Changed") {
                 CoroutineScope(Dispatchers.Main).launch {
-                    Snackbar.make(view, "Refreshing...", Snackbar.LENGTH_LONG).apply {
+                    Snackbar.make(view, "Refreshing...", Snackbar.LENGTH_SHORT).apply {
                         animationMode = Snackbar.ANIMATION_MODE_FADE
                         setAnchorView(R.id.saveFab)
+                        duration = 300
                     }.show()
-                    delay(2000)
+                    rv_note.visibility = View.GONE
+                    delay(300)
                     recyclerViewDisplay()
+                    rv_note.visibility = View.VISIBLE
                 }
             }
         }
+
         //sets up RecyclerView
         recyclerViewDisplay()
         swipeToDelete(rv_note)
@@ -98,8 +106,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     } else {
                         observerDataChanges()
                     }
-                }
-                else {
+                } else {
                     observerDataChanges()
                 }
             }
@@ -111,6 +118,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
 
         })
+
         search.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 v.clearFocus()
@@ -118,11 +126,14 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
             return@setOnEditorActionListener true
         }
+
         clear_text.setOnClickListener {
             clearTxtFunction()
             it.visibility = View.GONE
             no_data.visibility = View.GONE
         }
+
+
 
         view.saveFab.setOnClickListener {
             appBarLayout1.visibility = View.INVISIBLE
@@ -131,6 +142,8 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         view.innerFab.setOnClickListener {
             navController.navigate(R.id.action_noteFragment_to_noteContentFragment)
         }
+
+
 
         rv_note.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
             when {
@@ -148,7 +161,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 }
             }
         }
-
     } //onViewCreated closed
 
     private fun recyclerViewDisplay() {
@@ -175,9 +187,9 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         observerDataChanges()
     }
 
-    private fun observerDataChanges(){
+    private fun observerDataChanges() {
         noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
-            if (list.isEmpty()){
+            if (list.isEmpty()) {
                 no_data.visibility = View.VISIBLE
             }
             adapter.submitList(list)
@@ -196,7 +208,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     hideKeyboard()
                     clearFocus()
                 }
-                if (search.text.toString().isEmpty()){
+                if (search.text.toString().isEmpty()) {
                     observerDataChanges()
                 }
                 val snackBar = Snackbar.make(
@@ -222,7 +234,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         itemTouchHelper.attachToRecyclerView(recyclerView)
     }
 
-    private fun clearTxtFunction(){
+    private fun clearTxtFunction() {
         search.apply {
             text.clear()
             hideKeyboard()

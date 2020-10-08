@@ -6,11 +6,16 @@ import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ImageSpan
 import android.util.Log
+import android.view.ContextMenu
+import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
@@ -18,7 +23,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import com.bumptech.glide.Glide
+import coil.load
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -35,6 +40,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
     private lateinit var navController: NavController
@@ -43,7 +49,8 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private lateinit var result: String
     private var color = -1
     private val REQUEST_IMAGE_CAPTURE = 100
-    private var imageBitmap: Bitmap ?= null
+    private var imageBitmap: Bitmap? = null
+    private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
 
     @SuppressLint("InflateParams")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -64,6 +71,13 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
+
+        if (count == 1 && note == null) {
+            noteImage.visibility = View.VISIBLE
+            noteImage.load(noteActivityViewModel.setImage())
+        }
+
+        registerForContextMenu(noteImage)
 
         view.saveBtn.setOnClickListener {
             requireView().hideKeyboard()
@@ -94,15 +108,15 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             with(bottomSheetDialog) {
                 setContentView(bottomSheetView)
                 show()
-                setOnDismissListener {
-                    Toast.makeText(requireContext(), "Color Set", Toast.LENGTH_SHORT).show()
-                }
             }
 
             bottomSheetView.addImage.setOnClickListener {
-                val permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA)
+                val permission = ContextCompat.checkSelfPermission(
+                    activity,
+                    Manifest.permission.CAMERA
+                )
                 if (permission != PackageManager.PERMISSION_GRANTED) {
-                    val permissions = arrayOf( Manifest.permission.CAMERA)
+                    val permissions = arrayOf(Manifest.permission.CAMERA)
                     ActivityCompat.requestPermissions(activity, permissions, REQUEST_IMAGE_CAPTURE)
                 } else if (permission == PackageManager.PERMISSION_GRANTED) {
                     takePictureIntent()
@@ -124,17 +138,15 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             } else {
                 lastEdited.text = getString(R.string.edited_on, note?.date)
                 color = note!!.color
-                if (note?.image != null){
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(10)
-                        noteImage.visibility = View.VISIBLE
-                    }
-                    noteImage.setImageBitmap(note?.image)
+                if (note?.image != null) {
+                    noteImage.load(note?.image)
+                    noteActivityViewModel.saveImage(note?.image)
                 }
                 noteContentFragmentParent.apply {
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(10)
                         setBackgroundColor(color)
+                        noteImage.visibility = View.VISIBLE
                     }
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(295)
@@ -149,7 +161,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     }
 
     private fun saveNoteViaFragmentAndGoBack() {
-        val currentDate = SimpleDateFormat.getDateInstance().format(Date())
 
         if (titleTxtView.text.toString().isEmpty() &&
             noteContentTxtView.text.toString().isEmpty()
@@ -161,38 +172,14 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         } else {
 
             if (note == null) {
-                noteActivityViewModel.saveNote(
-                    Note(
-                        0,
-                        titleTxtView.text.toString(),
-                        noteContentTxtView.text.toString(),
-                        currentDate,
-                        color,
-                        imageBitmap
-                    )
-                )
-                Log.d("tag", "new note saved")
+                saveNote()
                 result = "Note Saved"
                 setFragmentResult("key", bundleOf("bundleKey" to result))
                 navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
 
             } else if (note != null) {
-                noteActivityViewModel.updateNote(
-                    Note(
-                        note!!.id,
-                        titleTxtView.text.toString(),
-                        noteContentTxtView.text.toString(),
-                        currentDate,
-                        color,
-                        if (imageBitmap == null){
-                            note?.image
-                        } else {
-                            imageBitmap
-                        }
-                    )
-                )
-                Log.d("tag", "new Note Saved")
-                if (imageBitmap != note?.image && color != note?.color){
+                updateNote()
+                if (noteActivityViewModel.setImage() != note?.image || color != note?.color) {
                     result = "Content Changed"
                     setFragmentResult("key", bundleOf("bundleKey" to result))
                 }
@@ -201,9 +188,36 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             Log.d("tag", "skipped")
         }
     }
+
+    private fun saveNote() {
+        noteActivityViewModel.saveNote(
+            Note(
+                0,
+                titleTxtView.text.toString(),
+                noteContentTxtView.text.toString(),
+                currentDate,
+                color,
+                imageBitmap
+            )
+        )
+    }
+
+    private fun updateNote() {
+        noteActivityViewModel.updateNote(
+            Note(
+                note!!.id,
+                titleTxtView.text.toString(),
+                noteContentTxtView.text.toString(),
+                currentDate,
+                color,
+                noteActivityViewModel.setImage()
+            )
+        )
+    }
+
     @Suppress("DEPRECATION")
-    private fun takePictureIntent(){
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also {pictureIntent ->
+    private fun takePictureIntent() {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { pictureIntent ->
             pictureIntent.resolveActivity(activity?.packageManager!!.also {
                 startActivityForResult(pictureIntent, REQUEST_IMAGE_CAPTURE)
             })
@@ -212,14 +226,52 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
     @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == 100 && resultCode == RESULT_OK){
+        if (requestCode == 100 && resultCode == RESULT_OK) {
             imageBitmap = data?.extras?.get("data") as Bitmap
-            Glide.with(this)
-                .load(imageBitmap)
-                .into(noteImage)
+            Log.d("tag", imageBitmap.toString())
+            noteActivityViewModel.saveImage(imageBitmap!!)
+            noteImage.load(imageBitmap)
             noteImage.visibility = View.VISIBLE
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu,
+        v: View,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menu.add(
+            0,
+            1,
+            1,
+            menuIconWithText(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_round_delete_24
+                )!!, getString(R.string.delete)
+            )
+        )
+    }
+
+    private fun menuIconWithText(r: Drawable, title: String): CharSequence? {
+        r.setBounds(0, 0, r.intrinsicWidth, r.intrinsicHeight)
+        val sb = SpannableString("   $title")
+        val imageSpan = ImageSpan(r, ImageSpan.ALIGN_BOTTOM)
+        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return sb
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            1 -> {
+                note?.image = null
+                noteActivityViewModel.saveImage(null)
+                noteImage.visibility = View.GONE
+            }
+        }
+        return super.onContextItemSelected(item)
+    }
 }

@@ -20,6 +20,6 @@ data class Note(
     val color: Int = -1,
 
     @field:TypeConverters(Converters::class)
-    val image: Bitmap?,
+    var image: Bitmap?,
 
-): Parcelable
+    ): Parcelable

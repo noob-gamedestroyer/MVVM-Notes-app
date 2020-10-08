@@ -1,5 +1,6 @@
 package com.gamdestroyerr.roomnote.viewmodel
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
@@ -10,10 +11,19 @@ import kotlinx.coroutines.launch
 
 class NoteActivityViewModel(private val repositoryObject: NoteRepository) : ViewModel() {
 
-
     fun saveNote(newNote: Note) = viewModelScope.launch {
         Log.d("tag", "saveNote() is called")
         repositoryObject.addNote(newNote)
+    }
+
+    private var imageGet: Bitmap? = null
+
+    fun saveImage(image: Bitmap?) {
+        imageGet = image
+    }
+
+    fun setImage(): Bitmap? {
+        return imageGet
     }
 
     fun updateNote(existingNote: Note) = viewModelScope.launch {
@@ -24,7 +34,7 @@ class NoteActivityViewModel(private val repositoryObject: NoteRepository) : View
         repositoryObject.deleteNote(existingNote)
     }
 
-    fun searchNote(query: String) : LiveData<List<Note>> {
+    fun searchNote(query: String): LiveData<List<Note>> {
         return repositoryObject.searchNote(query)
     }
 
