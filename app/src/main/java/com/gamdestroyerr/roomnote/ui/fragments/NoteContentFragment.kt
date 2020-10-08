@@ -1,15 +1,24 @@
 package com.gamdestroyerr.roomnote.ui.fragments
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity.RESULT_OK
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import com.bumptech.glide.Glide
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -33,6 +42,8 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private var note: Note? = null
     private lateinit var result: String
     private var color = -1
+    private val REQUEST_IMAGE_CAPTURE = 100
+    private var imageBitmap: Bitmap ?= null
 
     @SuppressLint("InflateParams")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -87,6 +98,18 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     Toast.makeText(requireContext(), "Color Set", Toast.LENGTH_SHORT).show()
                 }
             }
+
+            bottomSheetView.addImage.setOnClickListener {
+                val permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA)
+                if (permission != PackageManager.PERMISSION_GRANTED) {
+                    val permissions = arrayOf( Manifest.permission.CAMERA)
+                    ActivityCompat.requestPermissions(activity, permissions, REQUEST_IMAGE_CAPTURE)
+                } else if (permission == PackageManager.PERMISSION_GRANTED) {
+                    takePictureIntent()
+                    bottomSheetDialog.dismiss()
+                }
+
+            }
         }
 
         //opens with existing note item
@@ -101,6 +124,13 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             } else {
                 lastEdited.text = getString(R.string.edited_on, note?.date)
                 color = note!!.color
+                if (note?.image != null){
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(10)
+                        noteImage.visibility = View.VISIBLE
+                    }
+                    noteImage.setImageBitmap(note?.image)
+                }
                 noteContentFragmentParent.apply {
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(10)
@@ -137,7 +167,8 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         titleTxtView.text.toString(),
                         noteContentTxtView.text.toString(),
                         currentDate,
-                        color
+                        color,
+                        imageBitmap
                     )
                 )
                 Log.d("tag", "new note saved")
@@ -152,14 +183,43 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         titleTxtView.text.toString(),
                         noteContentTxtView.text.toString(),
                         currentDate,
-                        color
+                        color,
+                        if (imageBitmap == null){
+                            note?.image
+                        } else {
+                            imageBitmap
+                        }
                     )
                 )
                 Log.d("tag", "new Note Saved")
+                if (imageBitmap != note?.image && color != note?.color){
+                    result = "Content Changed"
+                    setFragmentResult("key", bundleOf("bundleKey" to result))
+                }
                 navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
             }
             Log.d("tag", "skipped")
         }
+    }
+    @Suppress("DEPRECATION")
+    private fun takePictureIntent(){
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also {pictureIntent ->
+            pictureIntent.resolveActivity(activity?.packageManager!!.also {
+                startActivityForResult(pictureIntent, REQUEST_IMAGE_CAPTURE)
+            })
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == 100 && resultCode == RESULT_OK){
+            imageBitmap = data?.extras?.get("data") as Bitmap
+            Glide.with(this)
+                .load(imageBitmap)
+                .into(noteImage)
+            noteImage.visibility = View.VISIBLE
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
 }

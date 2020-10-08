@@ -3,8 +3,10 @@ package com.gamdestroyerr.roomnote.db
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.gamdestroyerr.roomnote.model.Note
+import com.gamdestroyerr.roomnote.utils.Converters
 
 @Dao
+@TypeConverters(Converters::class)
 interface DAO {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

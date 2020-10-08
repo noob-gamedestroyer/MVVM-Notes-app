@@ -1,10 +1,15 @@
 package com.gamdestroyerr.roomnote.model
 
+import android.graphics.Bitmap
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.io.Serializable
+import androidx.room.TypeConverters
+import com.gamdestroyerr.roomnote.utils.Converters
+import kotlinx.android.parcel.Parcelize
 
 @Entity
+@Parcelize
 data class Note(
 
     @PrimaryKey(autoGenerate = true)
@@ -14,4 +19,7 @@ data class Note(
     val date: String,
     val color: Int = -1,
 
-) : Serializable
+    @field:TypeConverters(Converters::class)
+    val image: Bitmap?,
+
+): Parcelable

@@ -21,6 +21,16 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/itemNoteImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:shapeAppearanceOverlay="@style/circularImageView"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/noteItemTitle"
         android:layout_width="0dp"
@@ -40,7 +50,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/itemNoteImage" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/noteContentItemTitle"

@@ -54,7 +54,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         //Receives confirmation from the noteContentFragment
         setFragmentResultListener("key") { _, bundle ->
             val result = bundle.getString("bundleKey")
-            if (result!!.isNotEmpty()) {
+            if (result == "Note Saved" || result == "Note Updated") {
 
                 CoroutineScope(Dispatchers.Main).launch {
                     delay(10)
@@ -64,16 +64,16 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     }.show()
                 }
             }
-//          else if (result == "Refreshing..."){
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
-//                        animationMode = Snackbar.ANIMATION_MODE_FADE
-//                        setAnchorView(R.id.saveFab)
-//                    }.show()
-//                    delay(2000)
-//                    recyclerViewDisplay()
-//                }
-//            }
+          else if (result == "Content Changed"){
+                CoroutineScope(Dispatchers.Main).launch {
+                    Snackbar.make(view, "Refreshing...", Snackbar.LENGTH_LONG).apply {
+                        animationMode = Snackbar.ANIMATION_MODE_FADE
+                        setAnchorView(R.id.saveFab)
+                    }.show()
+                    delay(2000)
+                    recyclerViewDisplay()
+                }
+            }
         }
         //sets up RecyclerView
         recyclerViewDisplay()
