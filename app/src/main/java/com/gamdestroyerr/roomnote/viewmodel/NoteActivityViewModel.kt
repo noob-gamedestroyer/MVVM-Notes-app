@@ -23,7 +23,10 @@ class NoteActivityViewModel(private val repositoryObject: NoteRepository) : View
     }
 
     fun setImage(): Bitmap? {
-        return imageGet
+        if (imageGet != null) {
+            return imageGet
+        }
+        return null
     }
 
     fun updateNote(existingNote: Note) = viewModelScope.launch {

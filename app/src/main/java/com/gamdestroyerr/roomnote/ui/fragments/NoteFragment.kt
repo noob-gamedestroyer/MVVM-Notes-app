@@ -58,27 +58,29 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
         //Receives confirmation from the noteContentFragment
         setFragmentResultListener("key") { _, bundle ->
-            val result = bundle.getString("bundleKey")
-            if (result == "Note Saved" || result == "Note Updated" || result == "Empty Note Discarded") {
+            when (val result = bundle.getString("bundleKey")) {
+                "Note Saved", "Empty Note Discarded" -> {
 
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(10)
-                    Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
-                        animationMode = Snackbar.ANIMATION_MODE_FADE
-                        setAnchorView(R.id.saveFab)
-                    }.show()
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(10)
+                        Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
+                            animationMode = Snackbar.ANIMATION_MODE_FADE
+                            setAnchorView(R.id.saveFab)
+                        }.show()
+                    }
                 }
-            } else if (result == "Content Changed") {
-                CoroutineScope(Dispatchers.Main).launch {
-                    Snackbar.make(view, "Refreshing...", Snackbar.LENGTH_SHORT).apply {
-                        animationMode = Snackbar.ANIMATION_MODE_FADE
-                        setAnchorView(R.id.saveFab)
-                        duration = 300
-                    }.show()
-                    rv_note.visibility = View.GONE
-                    delay(300)
-                    recyclerViewDisplay()
-                    rv_note.visibility = View.VISIBLE
+                "Content Changed" -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Snackbar.make(view, "Refreshing...", Snackbar.LENGTH_SHORT).apply {
+                            animationMode = Snackbar.ANIMATION_MODE_FADE
+                            setAnchorView(R.id.saveFab)
+                            duration = 300
+                        }.show()
+                        rv_note.visibility = View.GONE
+                        delay(300)
+                        recyclerViewDisplay()
+                        rv_note.visibility = View.VISIBLE
+                    }
                 }
             }
         }
@@ -90,11 +92,21 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         //implements search function
         search.addTextChangedListener(object : TextWatcher {
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
                 no_data.visibility = View.GONE
             }
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            override fun onTextChanged(
+                s: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int
+            ) {
                 if (s.toString().isNotEmpty()) {
                     clear_text.visibility = View.VISIBLE
                     val text = s.toString()
@@ -191,6 +203,8 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
             if (list.isEmpty()) {
                 no_data.visibility = View.VISIBLE
+            } else {
+                no_data.visibility = View.GONE
             }
             adapter.submitList(list)
 

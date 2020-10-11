@@ -45,12 +45,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
     private lateinit var navController: NavController
     private lateinit var noteActivityViewModel: NoteActivityViewModel
-    private var note: Note? = null
     private lateinit var result: String
-    private var color = -1
-    private val REQUEST_IMAGE_CAPTURE = 100
+    private var note: Note? = null
     private var imageBitmap: Bitmap? = null
     private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
+    private var color = -1
+    private val REQUEST_IMAGE_CAPTURE = 100
 
     @SuppressLint("InflateParams")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -91,13 +91,21 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         view.deleteFab.setOnClickListener {
             val bottomSheetDialog = BottomSheetDialog(
                 requireContext(),
-                R.style.BottomSheetDialogTheme
+                R.style.BottomSheetDialogTheme,
             )
-            val bottomSheetView: View = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
+            val bottomSheetView: View = layoutInflater.inflate(
+                R.layout.bottom_sheet_dialog,
+                null,
+            )
+
+            with(bottomSheetDialog) {
+                setContentView(bottomSheetView)
+                show()
+            }
 
             bottomSheetView.colorPicker.setSelectedColor(color)
-            bottomSheetView.colorPicker.setOnColorSelectedListener {
-                color = it
+            bottomSheetView.colorPicker.setOnColorSelectedListener { value ->
+                color = value
                 noteContentFragmentParent.apply {
                     setBackgroundColor(color)
                     activity.window.statusBarColor = color
@@ -105,24 +113,25 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     appBarLayout2.setBackgroundColor(color)
                 }
             }
-            with(bottomSheetDialog) {
-                setContentView(bottomSheetView)
-                show()
-            }
-
             bottomSheetView.addImage.setOnClickListener {
                 val permission = ContextCompat.checkSelfPermission(
                     activity,
                     Manifest.permission.CAMERA
                 )
-                if (permission != PackageManager.PERMISSION_GRANTED) {
-                    val permissions = arrayOf(Manifest.permission.CAMERA)
-                    ActivityCompat.requestPermissions(activity, permissions, REQUEST_IMAGE_CAPTURE)
-                } else if (permission == PackageManager.PERMISSION_GRANTED) {
-                    takePictureIntent()
-                    bottomSheetDialog.dismiss()
+                when {
+                    permission != PackageManager.PERMISSION_GRANTED -> {
+                        val permissions = arrayOf(Manifest.permission.CAMERA)
+                        ActivityCompat.requestPermissions(
+                            activity,
+                            permissions,
+                            REQUEST_IMAGE_CAPTURE
+                        )
+                    }
+                    permission == PackageManager.PERMISSION_GRANTED -> {
+                        takePictureIntent()
+                        bottomSheetDialog.dismiss()
+                    }
                 }
-
             }
         }
 
@@ -131,6 +140,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             note = NoteContentFragmentArgs.fromBundle(it).note
             titleTxtView.setText(note?.title)
             noteContentTxtView.setText(note?.content)
+            noteImage.load(note?.image)
 
             if (note == null) {
                 lastEdited.text =
@@ -138,15 +148,16 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             } else {
                 lastEdited.text = getString(R.string.edited_on, note?.date)
                 color = note!!.color
-                if (note?.image != null) {
-                    noteImage.load(note?.image)
-                    noteActivityViewModel.saveImage(note?.image)
+                if (noteActivityViewModel.setImage() != null) {
+                    noteImage.load(noteActivityViewModel.setImage())
                 }
                 noteContentFragmentParent.apply {
+
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(10)
                         setBackgroundColor(color)
                         noteImage.visibility = View.VISIBLE
+
                     }
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(295)
@@ -171,19 +182,20 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
         } else {
 
-            if (note == null) {
-                saveNote()
-                result = "Note Saved"
-                setFragmentResult("key", bundleOf("bundleKey" to result))
-                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+            when {
+                note == null -> {
+                    saveNote()
+                    result = "Note Saved"
+                    setFragmentResult("key", bundleOf("bundleKey" to result))
+                    navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
 
-            } else if (note != null) {
-                updateNote()
-                if (noteActivityViewModel.setImage() != note?.image || color != note?.color) {
+                }
+                note != null -> {
+                    updateNote()
                     result = "Content Changed"
                     setFragmentResult("key", bundleOf("bundleKey" to result))
+                    navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
                 }
-                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
             }
             Log.d("tag", "skipped")
         }
@@ -217,19 +229,28 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
     @Suppress("DEPRECATION")
     private fun takePictureIntent() {
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { pictureIntent ->
-            pictureIntent.resolveActivity(activity?.packageManager!!.also {
-                startActivityForResult(pictureIntent, REQUEST_IMAGE_CAPTURE)
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { captureIntent ->
+            captureIntent.resolveActivity(activity?.packageManager!!.also {
+                startActivityForResult(captureIntent, REQUEST_IMAGE_CAPTURE)
             })
         }
     }
 
+    private fun displayImage() {
+
+    }
+
     @Suppress("DEPRECATION")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
         if (requestCode == 100 && resultCode == RESULT_OK) {
             imageBitmap = data?.extras?.get("data") as Bitmap
             Log.d("tag", imageBitmap.toString())
             noteActivityViewModel.saveImage(imageBitmap!!)
+            note?.image = null
             noteImage.load(imageBitmap)
             noteImage.visibility = View.VISIBLE
         }
