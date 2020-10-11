@@ -18,8 +18,9 @@ data class Note(
     val content: String,
     val date: String,
     val color: Int = -1,
+    val imagePath: String?,
 
     @field:TypeConverters(Converters::class)
-    var image: Bitmap?,
+    var thumbnail: Bitmap?,
 
     ): Parcelable

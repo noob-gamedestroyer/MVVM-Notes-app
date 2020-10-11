@@ -53,7 +53,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
-        noteActivityViewModel.saveImage(null)  //temporary fix
+        noteActivityViewModel.saveImagePath(null)  //temporary fix
 
 
         //Receives confirmation from the noteContentFragment
@@ -190,7 +190,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun setUpRecyclerView(spanCount: Int) {
         rv_note.layoutManager =
             StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
-
+        rv_note.setItemViewCacheSize(30)
         adapter = RvNotesAdapter()
         rv_note.adapter = adapter
         rv_note.itemAnimator = SlideInDownAnimator().apply {
@@ -207,7 +207,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 no_data.visibility = View.GONE
             }
             adapter.submitList(list)
-
+//            Log.d("tag", list.toString())
         })
     }
 

@@ -8,7 +8,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import com.bumptech.glide.Glide
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.fragments.NoteFragmentDirections
@@ -47,9 +47,13 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
                 title.text = note.title
                 content.text = note.content
                 date.text = note.date
-                if (note.image != null){
+                if (note.thumbnail != null) {
+                    Glide
+                        .with(itemView)
+                        .load(note.thumbnail)
+                        .placeholder(R.drawable.image_placeholder)
+                        .into(image)
                     image.visibility = View.VISIBLE
-                    image.load(note?.image)
                 }
                 drawable?.setTint(note.color)
                 noteContainer.background = ContextCompat.getDrawable(

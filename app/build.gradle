@@ -95,6 +95,10 @@ dependencies {
     //coil image loading library
     implementation 'io.coil-kt:coil:1.0.0-rc3'
 
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+
 
 
 }

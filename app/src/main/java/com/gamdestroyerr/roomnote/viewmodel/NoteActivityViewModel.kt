@@ -1,6 +1,5 @@
 package com.gamdestroyerr.roomnote.viewmodel
 
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
@@ -16,15 +15,15 @@ class NoteActivityViewModel(private val repositoryObject: NoteRepository) : View
         repositoryObject.addNote(newNote)
     }
 
-    private var imageGet: Bitmap? = null
+    private var imagePath: String? = null
 
-    fun saveImage(image: Bitmap?) {
-        imageGet = image
+    fun saveImagePath(path: String?) {
+        imagePath = path
     }
 
-    fun setImage(): Bitmap? {
-        if (imageGet != null) {
-            return imageGet
+    fun setImagePath(): String? {
+        if (imagePath != null) {
+            return imagePath
         }
         return null
     }
