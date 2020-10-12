@@ -19,7 +19,8 @@
 
     <style name="circularImageView" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
+        <item name="cornerSizeTopLeft">13dp</item>
+        <item name="cornerSizeTopRight">13dp</item>
     </style>
 
     <style name="splash" parent="Theme.MaterialComponents.Light.NoActionBar">

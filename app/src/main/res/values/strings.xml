@@ -19,7 +19,11 @@
     <string name="search_here">Search Here…</string>
 
     <string name="clear">clear</string>
-    <string name="add_color">Add Color</string>
+    <string name="choose_color">Choose Color</string>
     <string name="add_note">Add Note</string>
     <string name="no_data_image">no data image</string>
+    <string name="noteContentImage">NoteContentImage</string>
+    <string name="add_image">Add Image</string>
+    <string name="delete">Delete</string>
+    <string name="fileAuthority">com.gamdestroyerr.roomnote.fileProvider</string>
 </resources>

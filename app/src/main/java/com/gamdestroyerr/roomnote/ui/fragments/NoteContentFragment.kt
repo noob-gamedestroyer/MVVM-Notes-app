@@ -1,15 +1,37 @@
 package com.gamdestroyerr.roomnote.ui.fragments
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity.RESULT_OK
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.graphics.drawable.Drawable
+import android.media.ThumbnailUtils
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ImageSpan
 import android.util.Log
+import android.view.ContextMenu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
+import androidx.exifinterface.media.ExifInterface
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import coil.load
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -23,16 +45,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+
+private const val REQUEST_IMAGE_CAPTURE = 100
+private lateinit var photoFile: File
+private const val THUMBSIZE = 300
 
 class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
     private lateinit var navController: NavController
     private lateinit var noteActivityViewModel: NoteActivityViewModel
-    private var note: Note? = null
     private lateinit var result: String
+    private var note: Note? = null
+    private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
     private var color = -1
+    private var currentPhotoPath: String? = null
 
     @SuppressLint("InflateParams")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -47,12 +76,15 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             titleTxtView.visibility = View.VISIBLE
         }
 
+
         navController = Navigation.findNavController(view)
         val activity = activity as NoteActivity
         noteActivityViewModel = activity.noteActivityViewModel
 
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
+
+        registerForContextMenu(noteImage)
 
         view.saveBtn.setOnClickListener {
             requireView().hideKeyboard()
@@ -66,13 +98,21 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         view.deleteFab.setOnClickListener {
             val bottomSheetDialog = BottomSheetDialog(
                 requireContext(),
-                R.style.BottomSheetDialogTheme
+                R.style.BottomSheetDialogTheme,
             )
-            val bottomSheetView: View = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
+            val bottomSheetView: View = layoutInflater.inflate(
+                R.layout.bottom_sheet_dialog,
+                null,
+            )
+
+            with(bottomSheetDialog) {
+                setContentView(bottomSheetView)
+                show()
+            }
 
             bottomSheetView.colorPicker.setSelectedColor(color)
-            bottomSheetView.colorPicker.setOnColorSelectedListener {
-                color = it
+            bottomSheetView.colorPicker.setOnColorSelectedListener { value ->
+                color = value
                 noteContentFragmentParent.apply {
                     setBackgroundColor(color)
                     activity.window.statusBarColor = color
@@ -80,11 +120,23 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     appBarLayout2.setBackgroundColor(color)
                 }
             }
-            with(bottomSheetDialog) {
-                setContentView(bottomSheetView)
-                show()
-                setOnDismissListener {
-                    Toast.makeText(requireContext(), "Color Set", Toast.LENGTH_SHORT).show()
+            bottomSheetView.addImage.setOnClickListener {
+                val permission = ContextCompat.checkSelfPermission(
+                    activity,
+                    Manifest.permission.CAMERA
+                )
+                if (permission != PackageManager.PERMISSION_GRANTED) {
+
+                    val permissionArray = arrayOf(Manifest.permission.CAMERA)
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        permissionArray,
+                        REQUEST_IMAGE_CAPTURE
+                    )
+                }
+                if (permission == PackageManager.PERMISSION_GRANTED) {
+                    takePictureIntent()
+                    bottomSheetDialog.dismiss()
                 }
             }
         }
@@ -94,6 +146,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             note = NoteContentFragmentArgs.fromBundle(it).note
             titleTxtView.setText(note?.title)
             noteContentTxtView.setText(note?.content)
+            setImage(note?.imagePath)
 
             if (note == null) {
                 lastEdited.text =
@@ -101,10 +154,19 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             } else {
                 lastEdited.text = getString(R.string.edited_on, note?.date)
                 color = note!!.color
+                if (noteActivityViewModel.setImagePath() != null) {
+                    setImage(noteActivityViewModel.setImagePath())
+
+                } else {
+                    noteActivityViewModel.saveImagePath(note?.imagePath)
+                }
                 noteContentFragmentParent.apply {
+
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(10)
                         setBackgroundColor(color)
+                        noteImage.visibility = View.VISIBLE
+
                     }
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(295)
@@ -119,7 +181,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     }
 
     private fun saveNoteViaFragmentAndGoBack() {
-        val currentDate = SimpleDateFormat.getDateInstance().format(Date())
 
         if (titleTxtView.text.toString().isEmpty() &&
             noteContentTxtView.text.toString().isEmpty()
@@ -130,36 +191,188 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
         } else {
 
-            if (note == null) {
-                noteActivityViewModel.saveNote(
-                    Note(
-                        0,
-                        titleTxtView.text.toString(),
-                        noteContentTxtView.text.toString(),
-                        currentDate,
-                        color
-                    )
-                )
-                Log.d("tag", "new note saved")
-                result = "Note Saved"
-                setFragmentResult("key", bundleOf("bundleKey" to result))
-                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+            when {
+                note == null -> {
+                    saveNote()
+                    result = "Note Saved"
+                    setFragmentResult("key", bundleOf("bundleKey" to result))
+                    navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
 
-            } else if (note != null) {
-                noteActivityViewModel.updateNote(
-                    Note(
-                        note!!.id,
-                        titleTxtView.text.toString(),
-                        noteContentTxtView.text.toString(),
-                        currentDate,
-                        color
-                    )
-                )
-                Log.d("tag", "new Note Saved")
-                navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+                }
+                note != null -> {
+                    updateNote()
+                    result = "Content Changed"
+                    setFragmentResult("key", bundleOf("bundleKey" to result))
+                    navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+                }
             }
-            Log.d("tag", "skipped")
         }
     }
 
+    private fun saveNote() {
+        noteActivityViewModel.saveNote(
+            Note(
+                0,
+                titleTxtView.text.toString(),
+                noteContentTxtView.text.toString(),
+                currentDate,
+                color,
+                noteActivityViewModel.setImagePath(),
+                generateThumbNail()
+            )
+        )
+    }
+
+    private fun updateNote() {
+        noteActivityViewModel.updateNote(
+
+            Note(
+                note!!.id,
+                titleTxtView.text.toString(),
+                noteContentTxtView.text.toString(),
+                currentDate,
+                color,
+                noteActivityViewModel.setImagePath(),
+                generateThumbNail()
+            )
+        )
+    }
+
+    @Suppress("DEPRECATION")
+    private fun takePictureIntent() {
+
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { captureIntent ->
+            photoFile = getPhotoFile()
+            val fileProvider = FileProvider.getUriForFile(
+                requireContext(),
+                getString(R.string.fileAuthority),
+                photoFile
+            )
+            captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider)
+            captureIntent.resolveActivity(activity?.packageManager!!.also {
+                startActivityForResult(captureIntent, REQUEST_IMAGE_CAPTURE)
+            })
+        }
+    }
+
+
+    private fun getPhotoFile(): File {
+        val storageDir = activity?.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val timeStamp: String =
+            SimpleDateFormat("yyyy_MM_dd_HH:mm:ss", Locale.getDefault()).format(Date())
+        val file = File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
+            currentPhotoPath = absolutePath
+        }
+        if (Integer.parseInt(file.length().toString()) == 0) {
+            file.delete()
+        }
+        return file
+    }
+
+    private fun setImage(filePath: String?) {
+        if (filePath != null) {
+            val uri = Uri.fromFile(File(filePath))
+            noteImage.load(uri) {
+                this.placeholder(R.drawable.image_placeholder)
+            }
+            noteImage.visibility = View.VISIBLE
+        }
+    }
+
+    //better to do this as a background process cause it blocks UI thread
+    private fun generateThumbNail(): Bitmap? {
+        val imageThumbnail = ThumbnailUtils.extractThumbnail(
+            BitmapFactory.decodeFile(noteActivityViewModel.setImagePath()),
+            THUMBSIZE,
+            THUMBSIZE,
+        )
+        if (noteActivityViewModel.setImagePath() != null) {
+            val imagePath: String = noteActivityViewModel.setImagePath()!!
+            val bitmap = ThumbnailUtils.extractThumbnail(
+                BitmapFactory.decodeFile(noteActivityViewModel.setImagePath()),
+                THUMBSIZE,
+                THUMBSIZE,
+            )
+            val exifData = ExifInterface(imagePath)
+            val orientation = exifData.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+            val matrix = Matrix()
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90F)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180F)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270F)
+            }
+
+            val rotatedBitmap =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            bitmap.recycle()
+
+            return rotatedBitmap
+        }
+        return imageThumbnail
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+            noteActivityViewModel.saveImagePath(photoFile.absolutePath)
+            setImage(photoFile.absolutePath)
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu,
+        v: View,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menu.add(
+            0,
+            1,
+            1,
+            menuIconWithText(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_round_delete_24
+                )!!, getString(R.string.delete)
+            )
+        )
+    }
+
+    private fun menuIconWithText(r: Drawable, title: String): CharSequence? {
+        r.setBounds(0, 0, r.intrinsicWidth, r.intrinsicHeight)
+        val sb = SpannableString("   $title")
+        val imageSpan = ImageSpan(r, ImageSpan.ALIGN_BOTTOM)
+        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return sb
+    }
+
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            1 -> {
+                if (note?.imagePath != null) {
+                    val toDelete = File(note?.imagePath)
+                    if (toDelete.exists()) {
+                        toDelete.delete()
+                    }
+                }
+
+                note?.thumbnail = null
+                noteActivityViewModel.saveImagePath(null)
+                noteImage.visibility = View.GONE
+                updateNote()
+                Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
+            }
+        }
+        return super.onContextItemSelected(item)
+    }
 }

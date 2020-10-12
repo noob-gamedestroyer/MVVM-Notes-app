@@ -22,6 +22,7 @@ import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.utils.SwipeToDelete
 import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
+import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator
 import kotlinx.android.synthetic.main.fragment_note.*
@@ -30,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
@@ -38,43 +40,58 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        appBarLayout1.visibility = View.GONE
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(1)
-            appBarLayout1.visibility = View.VISIBLE
-        }
+
         val activity = activity as NoteActivity
         activity.window.statusBarColor = Color.WHITE
         noteActivityViewModel = activity.noteActivityViewModel
         val navController = Navigation.findNavController(view)
 
+        requireView().hideKeyboard()
+
+        appBarLayout1.visibility = View.GONE
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(1)
+            appBarLayout1.visibility = View.VISIBLE
+        }
+
+
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
+        noteActivityViewModel.saveImagePath(null)  //temporary fix
+
 
         //Receives confirmation from the noteContentFragment
         setFragmentResultListener("key") { _, bundle ->
-            val result = bundle.getString("bundleKey")
-            if (result!!.isNotEmpty()) {
+            when (val result = bundle.getString("bundleKey")) {
+                "Note Saved", "Empty Note Discarded" -> {
 
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(10)
-                    Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
-                        animationMode = Snackbar.ANIMATION_MODE_FADE
-                        setAnchorView(R.id.saveFab)
-                    }.show()
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Snackbar.make(view, result, Snackbar.LENGTH_SHORT).apply {
+                            animationMode = Snackbar.ANIMATION_MODE_FADE
+                            setAnchorView(R.id.saveFab)
+                        }.show()
+                        rv_note.visibility = View.GONE
+                        delay(300)
+                        recyclerViewDisplay()
+                        rv_note.visibility = View.VISIBLE
+                    }
+                }
+                "Content Changed" -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Snackbar.make(view, "Refreshing...", Snackbar.LENGTH_SHORT).apply {
+                            animationMode = Snackbar.ANIMATION_MODE_FADE
+                            setAnchorView(R.id.saveFab)
+                            duration = 300
+                        }.show()
+                        rv_note.visibility = View.GONE
+                        delay(300)
+                        recyclerViewDisplay()
+                        rv_note.visibility = View.VISIBLE
+                    }
                 }
             }
-//          else if (result == "Refreshing..."){
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
-//                        animationMode = Snackbar.ANIMATION_MODE_FADE
-//                        setAnchorView(R.id.saveFab)
-//                    }.show()
-//                    delay(2000)
-//                    recyclerViewDisplay()
-//                }
-//            }
         }
+
         //sets up RecyclerView
         recyclerViewDisplay()
         swipeToDelete(rv_note)
@@ -82,11 +99,21 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         //implements search function
         search.addTextChangedListener(object : TextWatcher {
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
                 no_data.visibility = View.GONE
             }
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            override fun onTextChanged(
+                s: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int
+            ) {
                 if (s.toString().isNotEmpty()) {
                     clear_text.visibility = View.VISIBLE
                     val text = s.toString()
@@ -98,8 +125,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     } else {
                         observerDataChanges()
                     }
-                }
-                else {
+                } else {
                     observerDataChanges()
                 }
             }
@@ -111,6 +137,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
 
         })
+
         search.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 v.clearFocus()
@@ -118,11 +145,14 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             }
             return@setOnEditorActionListener true
         }
+
         clear_text.setOnClickListener {
             clearTxtFunction()
             it.visibility = View.GONE
             no_data.visibility = View.GONE
         }
+
+
 
         view.saveFab.setOnClickListener {
             appBarLayout1.visibility = View.INVISIBLE
@@ -131,6 +161,8 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         view.innerFab.setOnClickListener {
             navController.navigate(R.id.action_noteFragment_to_noteContentFragment)
         }
+
+
 
         rv_note.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
             when {
@@ -148,7 +180,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 }
             }
         }
-
     } //onViewCreated closed
 
     private fun recyclerViewDisplay() {
@@ -166,7 +197,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun setUpRecyclerView(spanCount: Int) {
         rv_note.layoutManager =
             StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
-
+        rv_note.setItemViewCacheSize(30)
         adapter = RvNotesAdapter()
         rv_note.adapter = adapter
         rv_note.itemAnimator = SlideInDownAnimator().apply {
@@ -175,13 +206,14 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         observerDataChanges()
     }
 
-    private fun observerDataChanges(){
+    private fun observerDataChanges() {
         noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
-            if (list.isEmpty()){
+            if (list.isEmpty()) {
                 no_data.visibility = View.VISIBLE
+            } else {
+                no_data.visibility = View.GONE
             }
             adapter.submitList(list)
-
         })
     }
 
@@ -191,21 +223,41 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.absoluteAdapterPosition
                 val note = adapter.currentList[position]
+                var actionBtnTapped = false
                 noteActivityViewModel.deleteNote(note)
                 search.apply {
                     hideKeyboard()
                     clearFocus()
                 }
-                if (search.text.toString().isEmpty()){
+                if (search.text.toString().isEmpty()) {
                     observerDataChanges()
                 }
                 val snackBar = Snackbar.make(
                     requireView(), "Note Deleted", Snackbar.LENGTH_LONG
-                ).apply {
-                    setAction("UNDO") {
-                        noteActivityViewModel.saveNote(note)
-                        no_data.visibility = View.GONE
+                ).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                        when (!actionBtnTapped) {
+                            (note?.imagePath?.isNotEmpty()) -> {
+                                val toDelete = File(note.imagePath)
+                                if (toDelete.exists()) {
+                                    toDelete.delete()
+                                }
+                            }
+                        }
+                        super.onDismissed(transientBottomBar, event)
                     }
+
+                    override fun onShown(transientBottomBar: Snackbar?) {
+                        transientBottomBar?.setAction("UNDO") {
+                            noteActivityViewModel.saveNote(note)
+                            no_data.visibility = View.GONE
+                            actionBtnTapped = true
+
+                        }
+                        super.onShown(transientBottomBar)
+                    }
+                }).apply {
                     animationMode = Snackbar.ANIMATION_MODE_FADE
                     setAnchorView(R.id.saveFab)
                 }
@@ -222,7 +274,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         itemTouchHelper.attachToRecyclerView(recyclerView)
     }
 
-    private fun clearTxtFunction(){
+    private fun clearTxtFunction() {
         search.apply {
             text.clear()
             hideKeyboard()
