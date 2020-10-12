@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.graphics.drawable.Drawable
 import android.media.ThumbnailUtils
 import android.net.Uri
@@ -25,6 +26,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
+import androidx.exifinterface.media.ExifInterface
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
@@ -57,7 +59,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private lateinit var noteActivityViewModel: NoteActivityViewModel
     private lateinit var result: String
     private var note: Note? = null
-    private var imageThumbnail: Bitmap? = null
     private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
     private var color = -1
     private var currentPhotoPath: String? = null
@@ -155,6 +156,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 color = note!!.color
                 if (noteActivityViewModel.setImagePath() != null) {
                     setImage(noteActivityViewModel.setImagePath())
+
                 } else {
                     noteActivityViewModel.saveImagePath(note?.imagePath)
                 }
@@ -216,17 +218,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 currentDate,
                 color,
                 noteActivityViewModel.setImagePath(),
-                imageThumbnail
+                generateThumbNail()
             )
         )
     }
 
     private fun updateNote() {
-        imageThumbnail = ThumbnailUtils.extractThumbnail(
-            BitmapFactory.decodeFile(noteActivityViewModel.setImagePath()),
-            THUMBSIZE,
-            THUMBSIZE,
-        )
         noteActivityViewModel.updateNote(
 
             Note(
@@ -236,7 +233,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 currentDate,
                 color,
                 noteActivityViewModel.setImagePath(),
-                imageThumbnail
+                generateThumbNail()
             )
         )
     }
@@ -257,6 +254,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             })
         }
     }
+
 
     private fun getPhotoFile(): File {
         val storageDir = activity?.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
@@ -279,6 +277,41 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             }
             noteImage.visibility = View.VISIBLE
         }
+    }
+
+    //better to do this as a background process cause it blocks UI thread
+    private fun generateThumbNail(): Bitmap? {
+        val imageThumbnail = ThumbnailUtils.extractThumbnail(
+            BitmapFactory.decodeFile(noteActivityViewModel.setImagePath()),
+            THUMBSIZE,
+            THUMBSIZE,
+        )
+        if (noteActivityViewModel.setImagePath() != null) {
+            val imagePath: String = noteActivityViewModel.setImagePath()!!
+            val bitmap = ThumbnailUtils.extractThumbnail(
+                BitmapFactory.decodeFile(noteActivityViewModel.setImagePath()),
+                THUMBSIZE,
+                THUMBSIZE,
+            )
+            val exifData = ExifInterface(imagePath)
+            val orientation = exifData.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+            val matrix = Matrix()
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90F)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180F)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270F)
+            }
+
+            val rotatedBitmap =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            bitmap.recycle()
+
+            return rotatedBitmap
+        }
+        return imageThumbnail
     }
 
     @Suppress("DEPRECATION")
@@ -326,13 +359,17 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             1 -> {
-                val toDelete = File(note?.imagePath)
-                if (toDelete.exists()) {
-                    toDelete.delete()
+                if (note?.imagePath != null) {
+                    val toDelete = File(note?.imagePath)
+                    if (toDelete.exists()) {
+                        toDelete.delete()
+                    }
                 }
+
                 note?.thumbnail = null
                 noteActivityViewModel.saveImagePath(null)
                 noteImage.visibility = View.GONE
+                updateNote()
                 Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
             }
         }

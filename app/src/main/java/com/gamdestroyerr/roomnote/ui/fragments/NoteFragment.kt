@@ -22,6 +22,7 @@ import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.utils.SwipeToDelete
 import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
+import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator
 import kotlinx.android.synthetic.main.fragment_note.*
@@ -30,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
@@ -43,6 +45,8 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         activity.window.statusBarColor = Color.WHITE
         noteActivityViewModel = activity.noteActivityViewModel
         val navController = Navigation.findNavController(view)
+
+        requireView().hideKeyboard()
 
         appBarLayout1.visibility = View.GONE
         CoroutineScope(Dispatchers.Main).launch {
@@ -62,11 +66,14 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 "Note Saved", "Empty Note Discarded" -> {
 
                     CoroutineScope(Dispatchers.Main).launch {
-                        delay(10)
-                        Snackbar.make(view, result, Snackbar.LENGTH_LONG).apply {
+                        Snackbar.make(view, result, Snackbar.LENGTH_SHORT).apply {
                             animationMode = Snackbar.ANIMATION_MODE_FADE
                             setAnchorView(R.id.saveFab)
                         }.show()
+                        rv_note.visibility = View.GONE
+                        delay(300)
+                        recyclerViewDisplay()
+                        rv_note.visibility = View.VISIBLE
                     }
                 }
                 "Content Changed" -> {
@@ -207,7 +214,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 no_data.visibility = View.GONE
             }
             adapter.submitList(list)
-//            Log.d("tag", list.toString())
         })
     }
 
@@ -217,6 +223,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.absoluteAdapterPosition
                 val note = adapter.currentList[position]
+                var actionBtnTapped = false
                 noteActivityViewModel.deleteNote(note)
                 search.apply {
                     hideKeyboard()
@@ -227,11 +234,30 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                 }
                 val snackBar = Snackbar.make(
                     requireView(), "Note Deleted", Snackbar.LENGTH_LONG
-                ).apply {
-                    setAction("UNDO") {
-                        noteActivityViewModel.saveNote(note)
-                        no_data.visibility = View.GONE
+                ).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                        when (!actionBtnTapped) {
+                            (note?.imagePath?.isNotEmpty()) -> {
+                                val toDelete = File(note.imagePath)
+                                if (toDelete.exists()) {
+                                    toDelete.delete()
+                                }
+                            }
+                        }
+                        super.onDismissed(transientBottomBar, event)
                     }
+
+                    override fun onShown(transientBottomBar: Snackbar?) {
+                        transientBottomBar?.setAction("UNDO") {
+                            noteActivityViewModel.saveNote(note)
+                            no_data.visibility = View.GONE
+                            actionBtnTapped = true
+
+                        }
+                        super.onShown(transientBottomBar)
+                    }
+                }).apply {
                     animationMode = Snackbar.ANIMATION_MODE_FADE
                     setAnchorView(R.id.saveFab)
                 }
