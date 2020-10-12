@@ -51,7 +51,7 @@ import java.util.*
 
 private const val REQUEST_IMAGE_CAPTURE = 100
 private lateinit var photoFile: File
-private const val THUMBSIZE = 300
+private const val THUMBSIZE = 270
 
 class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
