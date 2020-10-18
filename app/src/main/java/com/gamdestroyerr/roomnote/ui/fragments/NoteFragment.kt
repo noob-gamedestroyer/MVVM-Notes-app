@@ -197,7 +197,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun setUpRecyclerView(spanCount: Int) {
         rv_note.layoutManager =
             StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
-        rv_note.setItemViewCacheSize(30)
+        rv_note.setHasFixedSize(true)
         adapter = RvNotesAdapter()
         rv_note.adapter = adapter
         rv_note.itemAnimator = SlideInDownAnimator().apply {

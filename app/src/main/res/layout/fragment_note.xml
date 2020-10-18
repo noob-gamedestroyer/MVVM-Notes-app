@@ -102,6 +102,7 @@
         android:paddingStart="6dp"
         android:paddingEnd="6dp"
         android:paddingBottom="5dp"
+        tools:listitem="@layout/note_item_layout"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
