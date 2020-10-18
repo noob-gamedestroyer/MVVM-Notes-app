@@ -5,11 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.graphics.drawable.Drawable
-import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -26,12 +22,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
-import androidx.exifinterface.media.ExifInterface
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import coil.load
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -49,9 +45,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val REQUEST_IMAGE_CAPTURE = 100
-private lateinit var photoFile: File
-private const val THUMBSIZE = 300
+
 
 class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
@@ -61,6 +55,8 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private var note: Note? = null
     private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
     private var color = -1
+    private val REQUEST_IMAGE_CAPTURE = 100
+    private lateinit var photoFile: File
     private var currentPhotoPath: String? = null
 
     @SuppressLint("InflateParams")
@@ -218,14 +214,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 currentDate,
                 color,
                 noteActivityViewModel.setImagePath(),
-                generateThumbNail()
             )
         )
     }
 
     private fun updateNote() {
         noteActivityViewModel.updateNote(
-
             Note(
                 note!!.id,
                 titleTxtView.text.toString(),
@@ -233,11 +227,11 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 currentDate,
                 color,
                 noteActivityViewModel.setImagePath(),
-                generateThumbNail()
             )
         )
     }
 
+    @SuppressLint("QueryPermissionsNeeded")
     @Suppress("DEPRECATION")
     private fun takePictureIntent() {
 
@@ -255,12 +249,11 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         }
     }
 
-
     private fun getPhotoFile(): File {
         val storageDir = activity?.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         val timeStamp: String =
             SimpleDateFormat("yyyy_MM_dd_HH:mm:ss", Locale.getDefault()).format(Date())
-        val file = File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
+        val file = File.createTempFile("IMG_${timeStamp}_", ".jpg", storageDir).apply {
             currentPhotoPath = absolutePath
         }
         if (Integer.parseInt(file.length().toString()) == 0) {
@@ -272,46 +265,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private fun setImage(filePath: String?) {
         if (filePath != null) {
             val uri = Uri.fromFile(File(filePath))
-            noteImage.load(uri) {
-                this.placeholder(R.drawable.image_placeholder)
-            }
             noteImage.visibility = View.VISIBLE
+            Glide.with(this)
+                .load(uri)
+                .transition(DrawableTransitionOptions.withCrossFade(500))
+                .into(noteImage)
         }
-    }
-
-    //better to do this as a background process cause it blocks UI thread
-    private fun generateThumbNail(): Bitmap? {
-        val imageThumbnail = ThumbnailUtils.extractThumbnail(
-            BitmapFactory.decodeFile(noteActivityViewModel.setImagePath()),
-            THUMBSIZE,
-            THUMBSIZE,
-        )
-        if (noteActivityViewModel.setImagePath() != null) {
-            val imagePath: String = noteActivityViewModel.setImagePath()!!
-            val bitmap = ThumbnailUtils.extractThumbnail(
-                BitmapFactory.decodeFile(noteActivityViewModel.setImagePath()),
-                THUMBSIZE,
-                THUMBSIZE,
-            )
-            val exifData = ExifInterface(imagePath)
-            val orientation = exifData.getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL
-            )
-            val matrix = Matrix()
-            when (orientation) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90F)
-                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180F)
-                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270F)
-            }
-
-            val rotatedBitmap =
-                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-            bitmap.recycle()
-
-            return rotatedBitmap
-        }
-        return imageThumbnail
     }
 
     @Suppress("DEPRECATION")
@@ -355,18 +314,15 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         return sb
     }
 
-    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     override fun onContextItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             1 -> {
                 if (note?.imagePath != null) {
-                    val toDelete = File(note?.imagePath)
+                    val toDelete = File(note?.imagePath!!)
                     if (toDelete.exists()) {
                         toDelete.delete()
                     }
                 }
-
-                note?.thumbnail = null
                 noteActivityViewModel.saveImagePath(null)
                 noteImage.visibility = View.GONE
                 updateNote()
