@@ -79,6 +79,4 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
             }
         }
     }
-
 }
-

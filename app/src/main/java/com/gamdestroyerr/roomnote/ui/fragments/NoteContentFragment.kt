@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.text.Spannable
 import android.text.SpannableString
@@ -31,8 +30,11 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
+import com.gamdestroyerr.roomnote.utils.getImageUrlWithAuthority
+import com.gamdestroyerr.roomnote.utils.getPhotoFile
 import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.android.synthetic.main.bottom_sheet_dialog.view.*
 import kotlinx.android.synthetic.main.fragment_note_content.*
@@ -45,8 +47,6 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-
-
 class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
     private lateinit var navController: NavController
@@ -56,10 +56,10 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
     private var color = -1
     private val REQUEST_IMAGE_CAPTURE = 100
+    private val SELECT_IMAGE_FROM_STORAGE = 101
     private lateinit var photoFile: File
-    private var currentPhotoPath: String? = null
 
-    @SuppressLint("InflateParams")
+    @SuppressLint("InflateParams", "QueryPermissionsNeeded")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         appBarLayout2.visibility = View.INVISIBLE
@@ -116,10 +116,13 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     appBarLayout2.setBackgroundColor(color)
                 }
             }
+            bottomSheetView.post {
+                bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
             bottomSheetView.addImage.setOnClickListener {
                 val permission = ContextCompat.checkSelfPermission(
                     activity,
-                    Manifest.permission.CAMERA
+                    Manifest.permission.CAMERA,
                 )
                 if (permission != PackageManager.PERMISSION_GRANTED) {
 
@@ -134,6 +137,16 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     takePictureIntent()
                     bottomSheetDialog.dismiss()
                 }
+            }
+            @Suppress("DEPRECATION")
+            bottomSheetView.selectImage.setOnClickListener {
+                Intent(Intent.ACTION_GET_CONTENT).also { chooseIntent ->
+                    chooseIntent.type = "image/*"
+                    chooseIntent.resolveActivity(activity.packageManager!!.also {
+                        startActivityForResult(chooseIntent, SELECT_IMAGE_FROM_STORAGE)
+                    })
+                }
+                bottomSheetDialog.dismiss()
             }
         }
 
@@ -189,9 +202,21 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
             when {
                 note == null -> {
-                    saveNote()
+                    noteActivityViewModel.saveNote(
+                        Note(
+                            0,
+                            titleTxtView.text.toString(),
+                            noteContentTxtView.text.toString(),
+                            currentDate,
+                            color,
+                            noteActivityViewModel.setImagePath(),
+                        )
+                    )
                     result = "Note Saved"
-                    setFragmentResult("key", bundleOf("bundleKey" to result))
+                    setFragmentResult(
+                        "key",
+                        bundleOf("bundleKey" to result)
+                    )
                     navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
 
                 }
@@ -205,30 +230,19 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         }
     }
 
-    private fun saveNote() {
-        noteActivityViewModel.saveNote(
-            Note(
-                0,
-                titleTxtView.text.toString(),
-                noteContentTxtView.text.toString(),
-                currentDate,
-                color,
-                noteActivityViewModel.setImagePath(),
-            )
-        )
-    }
-
     private fun updateNote() {
-        noteActivityViewModel.updateNote(
-            Note(
-                note!!.id,
-                titleTxtView.text.toString(),
-                noteContentTxtView.text.toString(),
-                currentDate,
-                color,
-                noteActivityViewModel.setImagePath(),
+        if (note != null) {
+            noteActivityViewModel.updateNote(
+                Note(
+                    note!!.id,
+                    titleTxtView.text.toString(),
+                    noteContentTxtView.text.toString(),
+                    currentDate,
+                    color,
+                    noteActivityViewModel.setImagePath(),
+                )
             )
-        )
+        }
     }
 
     @SuppressLint("QueryPermissionsNeeded")
@@ -236,7 +250,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private fun takePictureIntent() {
 
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { captureIntent ->
-            photoFile = getPhotoFile()
+            photoFile = getPhotoFile(requireActivity())
             val fileProvider = FileProvider.getUriForFile(
                 requireContext(),
                 getString(R.string.fileAuthority),
@@ -249,21 +263,9 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         }
     }
 
-    private fun getPhotoFile(): File {
-        val storageDir = activity?.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val timeStamp: String =
-            SimpleDateFormat("yyyy_MM_dd_HH:mm:ss", Locale.getDefault()).format(Date())
-        val file = File.createTempFile("IMG_${timeStamp}_", ".jpg", storageDir).apply {
-            currentPhotoPath = absolutePath
-        }
-        if (Integer.parseInt(file.length().toString()) == 0) {
-            file.delete()
-        }
-        return file
-    }
-
     private fun setImage(filePath: String?) {
         if (filePath != null) {
+            Log.d("Tag", filePath)
             val uri = Uri.fromFile(File(filePath))
             noteImage.visibility = View.VISIBLE
             Glide.with(this)
@@ -279,9 +281,28 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         resultCode: Int,
         data: Intent?
     ) {
-        if (requestCode == 100 && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             noteActivityViewModel.saveImagePath(photoFile.absolutePath)
             setImage(photoFile.absolutePath)
+        }
+        if (requestCode == SELECT_IMAGE_FROM_STORAGE && resultCode == RESULT_OK) {
+            val uri = data?.data
+            Log.d("Tag", uri.toString())
+            if (uri != null) {
+                val selectedImagePath = getImageUrlWithAuthority(
+                    requireContext(),
+                    uri,
+                    requireActivity()
+                )
+                noteActivityViewModel.saveImagePath(selectedImagePath)
+                setImage(selectedImagePath)
+            }
+
+            noteImage.visibility = View.VISIBLE
+            Glide.with(this)
+                .load(uri)
+                .transition(DrawableTransitionOptions.withCrossFade(500))
+                .into(noteImage)
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -323,7 +344,14 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         toDelete.delete()
                     }
                 }
-                noteActivityViewModel.saveImagePath(null)
+                if (noteActivityViewModel.setImagePath() != null) {
+                    val toDelete = File(noteActivityViewModel.setImagePath()!!)
+                    if (toDelete.exists()) {
+                        toDelete.delete()
+                    }
+                    noteActivityViewModel.saveImagePath(null)
+                }
+
                 noteImage.visibility = View.GONE
                 updateNote()
                 Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()

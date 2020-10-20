@@ -153,4 +153,6 @@
         app:fabSize="normal"
         app:tint="@android:color/white" />
 
+    <!--    <include layout="@layout/bottom_sheet_dialog"/>-->
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

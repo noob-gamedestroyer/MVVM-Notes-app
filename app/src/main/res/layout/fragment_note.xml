@@ -2,7 +2,6 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/cLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.fragments.NoteFragment">
@@ -15,7 +14,6 @@
         app:liftOnScroll="true">
 
         <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbarFragmentNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/white"
@@ -41,7 +39,6 @@
                     tools:ignore="RtlSymmetry" />
 
                 <LinearLayout
-                    android:id="@+id/search_container"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginTop="13dp"

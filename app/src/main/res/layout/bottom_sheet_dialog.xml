@@ -2,7 +2,7 @@
 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/bottom_sheet_rounded">
 
@@ -28,7 +28,7 @@
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
-        android:drawableStart="@drawable/ic_round_image_24"
+        android:drawableStart="@drawable/ic_round_add_a_photo_24"
         android:drawablePadding="10dp"
         android:fontFamily="@font/google_sans_regular"
         android:text="@string/add_image"
@@ -37,6 +37,24 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bar" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/selectImage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:drawableStart="@drawable/ic_round_add_photo_alternate_24"
+        android:drawablePadding="10dp"
+        android:fontFamily="@font/google_sans_regular"
+        android:text="@string/select_image"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/addImage" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/addColor"
@@ -51,10 +69,9 @@
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/addImage" />
+        app:layout_constraintTop_toBottomOf="@id/selectImage" />
 
     <HorizontalScrollView
-        android:id="@+id/horizontalScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none"

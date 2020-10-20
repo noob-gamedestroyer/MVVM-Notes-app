@@ -13,17 +13,15 @@
     </string>
     <string name="this_is_a_title">What is Lorem Ipsum?</string>
     <string name="dd_mm_yyyy">dd/mm/yyyy</string>
-    <string name="delete_toast_message">Note may not be Saved or it may be an empty note</string>
     <string name="edited_on">Edited on: %1$s</string>
-    <string name="search">Search</string>
     <string name="search_here">Search Here…</string>
-
     <string name="clear">clear</string>
-    <string name="choose_color">Choose Color</string>
+    <string name="choose_color">Select Color</string>
     <string name="add_note">Add Note</string>
     <string name="no_data_image">no data image</string>
     <string name="noteContentImage">NoteContentImage</string>
-    <string name="add_image">Add Image</string>
+    <string name="add_image">Take Picture</string>
     <string name="delete">Delete</string>
     <string name="fileAuthority">com.gamdestroyerr.roomnote.fileProvider</string>
+    <string name="select_image">Select Image</string>
 </resources>

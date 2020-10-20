@@ -21,7 +21,7 @@ class NoteActivity : AppCompatActivity() {
         noteActivityViewModel = ViewModelProvider(
             this,
             noteViewModelProviderFactory
-        ).get(NoteActivityViewModel::class.java)
+        )[NoteActivityViewModel::class.java]
     }
 
 }

@@ -12,6 +12,7 @@ import android.view.inputmethod.EditorInfo
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -207,7 +208,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     }
 
     private fun observerDataChanges() {
-        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, { list ->
+        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, Observer { list ->
             if (list.isEmpty()) {
                 no_data.visibility = View.VISIBLE
             } else {
@@ -284,5 +285,3 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     }
 
 } //class NoteFragment closed
-
-
