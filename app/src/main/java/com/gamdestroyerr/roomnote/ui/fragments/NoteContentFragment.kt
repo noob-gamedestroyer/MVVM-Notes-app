@@ -25,14 +25,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.utils.getImageUrlWithAuthority
 import com.gamdestroyerr.roomnote.utils.getPhotoFile
 import com.gamdestroyerr.roomnote.utils.hideKeyboard
+import com.gamdestroyerr.roomnote.utils.loadImage
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -268,10 +267,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             Log.d("Tag", filePath)
             val uri = Uri.fromFile(File(filePath))
             noteImage.visibility = View.VISIBLE
-            Glide.with(this)
-                .load(uri)
-                .transition(DrawableTransitionOptions.withCrossFade(500))
-                .into(noteImage)
+            context?.loadImage(uri, noteImage)
         }
     }
 
@@ -299,10 +295,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             }
 
             noteImage.visibility = View.VISIBLE
-            Glide.with(this)
-                .load(uri)
-                .transition(DrawableTransitionOptions.withCrossFade(500))
-                .into(noteImage)
+            context?.loadImage(uri, noteImage)
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
