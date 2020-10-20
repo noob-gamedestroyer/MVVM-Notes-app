@@ -1,7 +1,8 @@
 package com.gamdestroyerr.roomnote.ui.fragments
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
+import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
@@ -186,12 +187,8 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun recyclerViewDisplay() {
         @SuppressLint("SwitchIntDef")
         when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> {
-                setUpRecyclerView(2)
-            }
-            Configuration.ORIENTATION_LANDSCAPE -> {
-                setUpRecyclerView(3)
-            }
+            ORIENTATION_PORTRAIT -> setUpRecyclerView(2)
+            ORIENTATION_LANDSCAPE -> setUpRecyclerView(3)
         }
     }
 
