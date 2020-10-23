@@ -66,24 +66,10 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         setFragmentResultListener("key") { _, bundle ->
             when (val result = bundle.getString("bundleKey")) {
                 "Note Saved", "Empty Note Discarded" -> {
-
                     CoroutineScope(Dispatchers.Main).launch {
                         Snackbar.make(view, result, Snackbar.LENGTH_SHORT).apply {
                             animationMode = Snackbar.ANIMATION_MODE_FADE
-                            setAnchorView(R.id.saveFab)
-                        }.show()
-                        rv_note.visibility = View.GONE
-                        delay(300)
-                        recyclerViewDisplay()
-                        rv_note.visibility = View.VISIBLE
-                    }
-                }
-                "Content Changed" -> {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        Snackbar.make(view, "Refreshing...", Snackbar.LENGTH_SHORT).apply {
-                            animationMode = Snackbar.ANIMATION_MODE_FADE
-                            setAnchorView(R.id.saveFab)
-                            duration = 300
+                            setAnchorView(R.id.addNoteFab)
                         }.show()
                         rv_note.visibility = View.GONE
                         delay(300)
@@ -156,12 +142,12 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
 
 
-        view.saveFab.setOnClickListener {
+        view.addNoteFab.setOnClickListener {
             appBarLayout1.visibility = View.INVISIBLE
-            navController.navigate(R.id.action_noteFragment_to_noteContentFragment)
+            navController.navigate(NoteFragmentDirections.actionNoteFragmentToNoteContentFragment())
         }
         view.innerFab.setOnClickListener {
-            navController.navigate(R.id.action_noteFragment_to_noteContentFragment)
+            navController.navigate(NoteFragmentDirections.actionNoteFragmentToNoteContentFragment())
         }
 
 
@@ -257,7 +243,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     }
                 }).apply {
                     animationMode = Snackbar.ANIMATION_MODE_FADE
-                    setAnchorView(R.id.saveFab)
+                    setAnchorView(R.id.addNoteFab)
                 }
                 snackBar.setActionTextColor(
                     ContextCompat.getColor(

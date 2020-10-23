@@ -87,7 +87,7 @@
             android:layout_marginBottom="8dp"
             app:spectrum_autoPadding="true"
             app:spectrum_colors="@array/color_picker"
-            app:spectrum_columnCount="11"
+            app:spectrum_columnCount="16"
             app:spectrum_outlineWidth="0.1dp" />
 
     </HorizontalScrollView>

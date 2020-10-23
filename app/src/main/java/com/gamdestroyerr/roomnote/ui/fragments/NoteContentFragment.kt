@@ -17,6 +17,7 @@ import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -25,6 +26,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.navArgs
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -57,6 +59,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private val REQUEST_IMAGE_CAPTURE = 100
     private val SELECT_IMAGE_FROM_STORAGE = 101
     private lateinit var photoFile: File
+    private val args: NoteContentFragmentArgs by navArgs()
 
     @SuppressLint("InflateParams", "QueryPermissionsNeeded")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -71,6 +74,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             titleTxtView.visibility = View.VISIBLE
         }
 
+        noteContentTxtView.setStylesBar(styleBar)
 
         navController = Navigation.findNavController(view)
         val activity = activity as NoteActivity
@@ -119,7 +123,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
             }
             bottomSheetView.addImage.setOnClickListener {
-                val permission = ContextCompat.checkSelfPermission(
+                val permission = ActivityCompat.checkSelfPermission(
                     activity,
                     Manifest.permission.CAMERA,
                 )
@@ -131,6 +135,16 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         permissionArray,
                         REQUEST_IMAGE_CAPTURE
                     )
+                    ActivityCompat.OnRequestPermissionsResultCallback { requestCode, permissions, grantResults ->
+                        when (requestCode) {
+                            REQUEST_IMAGE_CAPTURE -> {
+                                if (permissions[0] == Manifest.permission.CAMERA && grantResults.isNotEmpty()) {
+                                    Log.d("tag", "this function is called")
+                                    takePictureIntent()
+                                }
+                            }
+                        }
+                    }
                 }
                 if (permission == PackageManager.PERMISSION_GRANTED) {
                     takePictureIntent()
@@ -150,10 +164,15 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         }
 
         //opens with existing note item
-        arguments?.let {
-            note = NoteContentFragmentArgs.fromBundle(it).note
+        args.let {
+            note = it.note
             titleTxtView.setText(note?.title)
-            noteContentTxtView.setText(note?.content)
+            if (note?.content == null) {
+                noteContentTxtView.text = note?.content
+            } else {
+                noteContentTxtView.renderMD(note?.content!!)
+            }
+
             setImage(note?.imagePath)
 
             if (note == null) {
@@ -176,16 +195,27 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         noteImage.visibility = View.VISIBLE
 
                     }
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(295)
-                        activity.window.statusBarColor = color
-                    }
+                    activity.window.statusBarColor = color
                 }
                 toolbarFragmentNoteContent.setBackgroundColor(color)
                 appBarLayout2.setBackgroundColor(color)
 
             }
         }
+
+        activity.onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (note != null) {
+                        updateNote()
+                        navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+                    } else {
+                        saveNoteViaFragmentAndGoBack()
+                    }
+                }
+            })
+
     }
 
     private fun saveNoteViaFragmentAndGoBack() {
@@ -195,17 +225,20 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         ) {
             result = "Empty Note Discarded"
             setFragmentResult("key", bundleOf("bundleKey" to result))
-            navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+            navController.navigate(
+                NoteContentFragmentDirections
+                    .actionNoteContentFragmentToNoteFragment()
+            )
 
         } else {
 
-            when {
-                note == null -> {
+            when (note) {
+                null -> {
                     noteActivityViewModel.saveNote(
                         Note(
                             0,
                             titleTxtView.text.toString(),
-                            noteContentTxtView.text.toString(),
+                            noteContentTxtView.getMD(),
                             currentDate,
                             color,
                             noteActivityViewModel.setImagePath(),
@@ -216,13 +249,14 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         "key",
                         bundleOf("bundleKey" to result)
                     )
-                    navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+                    navController.navigate(
+                        NoteContentFragmentDirections
+                            .actionNoteContentFragmentToNoteFragment()
+                    )
 
                 }
-                note != null -> {
+                else -> {
                     updateNote()
-                    result = "Content Changed"
-                    setFragmentResult("key", bundleOf("bundleKey" to result))
                     navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
                 }
             }
@@ -235,7 +269,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 Note(
                     note!!.id,
                     titleTxtView.text.toString(),
-                    noteContentTxtView.text.toString(),
+                    noteContentTxtView.getMD(),
                     currentDate,
                     color,
                     noteActivityViewModel.setImagePath(),
@@ -260,6 +294,14 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 startActivityForResult(captureIntent, REQUEST_IMAGE_CAPTURE)
             })
         }
+    }
+
+    private fun menuIconWithText(r: Drawable, title: String): CharSequence? {
+        r.setBounds(0, 0, r.intrinsicWidth, r.intrinsicHeight)
+        val sb = SpannableString("   $title")
+        val imageSpan = ImageSpan(r, ImageSpan.ALIGN_BOTTOM)
+        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return sb
     }
 
     private fun setImage(filePath: String?) {
@@ -320,14 +362,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         )
     }
 
-    private fun menuIconWithText(r: Drawable, title: String): CharSequence? {
-        r.setBounds(0, 0, r.intrinsicWidth, r.intrinsicHeight)
-        val sb = SpannableString("   $title")
-        val imageSpan = ImageSpan(r, ImageSpan.ALIGN_BOTTOM)
-        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return sb
-    }
-
     override fun onContextItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             1 -> {
@@ -352,4 +386,5 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         }
         return super.onContextItemSelected(item)
     }
+
 }

@@ -7,11 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.repository.NoteRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class NoteActivityViewModel(private val repositoryObject: NoteRepository) : ViewModel() {
 
-    fun saveNote(newNote: Note) = viewModelScope.launch {
+    fun saveNote(newNote: Note) = viewModelScope.launch(Dispatchers.IO) {
         Log.d("tag", "saveNote() is called")
         repositoryObject.addNote(newNote)
     }
@@ -23,17 +24,16 @@ class NoteActivityViewModel(private val repositoryObject: NoteRepository) : View
     }
 
     fun setImagePath(): String? {
-        if (imagePath != null) {
+        if (imagePath != null)
             return imagePath
-        }
         return null
     }
 
-    fun updateNote(existingNote: Note) = viewModelScope.launch {
+    fun updateNote(existingNote: Note) = viewModelScope.launch(Dispatchers.IO) {
         repositoryObject.updateNote(existingNote)
     }
 
-    fun deleteNote(existingNote: Note) = viewModelScope.launch {
+    fun deleteNote(existingNote: Note) = viewModelScope.launch(Dispatchers.IO) {
         repositoryObject.deleteNote(existingNote)
     }
 
@@ -42,4 +42,9 @@ class NoteActivityViewModel(private val repositoryObject: NoteRepository) : View
     }
 
     fun getAllNotes(): LiveData<List<Note>> = repositoryObject.getNote()
+
+    override fun onCleared() {
+        imagePath = null
+        super.onCleared()
+    }
 }

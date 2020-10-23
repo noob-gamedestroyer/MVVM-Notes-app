@@ -24,4 +24,5 @@
     <string name="delete">Delete</string>
     <string name="fileAuthority">com.gamdestroyerr.roomnote.fileProvider</string>
     <string name="select_image">Select Image</string>
+    <string name="fab">fab</string>
 </resources>
