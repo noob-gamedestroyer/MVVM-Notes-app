@@ -15,7 +15,7 @@ import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.fragments.NoteFragmentDirections
 import com.gamdestroyerr.roomnote.utils.hideKeyboard
-import com.gamdestroyerr.roomnote.utils.loadImage
+import com.gamdestroyerr.roomnote.utils.loadHiRezThumbnail
 import com.google.android.material.textview.MaterialTextView
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -73,7 +73,7 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
                     image.visibility = View.VISIBLE
                     val uri = Uri.fromFile(File(note.imagePath))
                     if (File(note.imagePath).exists())
-                        itemView.context.loadImage(uri, image)
+                        itemView.context.loadHiRezThumbnail(uri, image)
                 } else {
                     Glide.with(itemView).clear(image)
                     image.visibility = View.GONE
