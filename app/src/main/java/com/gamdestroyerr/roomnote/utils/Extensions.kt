@@ -10,6 +10,7 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
+
 fun View.hideKeyboard() =
     (context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
         .hideSoftInputFromWindow(windowToken, HIDE_NOT_ALWAYS)
@@ -29,7 +30,7 @@ fun Context.loadHiRezThumbnail(
     image: ImageView
 ) = Glide.with(this)
     .load(uri)
-    .override(600, 600)
-    .thumbnail(0.01f)
-    .transition(DrawableTransitionOptions.withCrossFade(500))
+    .override(500, 600)
+    .thumbnail(0.1f)
+    .transition(DrawableTransitionOptions.withCrossFade(200))
     .into(image)

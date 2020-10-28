@@ -27,11 +27,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
-            android:visibility="gone"
+            android:visibility="visible"
             app:shapeAppearanceOverlay="@style/circularImageView"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/noteItemTitle" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/noteItemTitle"
