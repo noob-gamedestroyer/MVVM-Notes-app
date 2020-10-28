@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.gamdestroyerr.roomnote.R
@@ -40,6 +41,7 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
         val image: ImageView = itemView.itemNoteImage
         val drawable = ContextCompat.getDrawable(itemView.context, R.drawable.note_item_rounded)
         val noteContainer: ConstraintLayout = itemView.noteItemContainer
+        val parent: ConstraintLayout = itemView.noteItemLayoutParent
         val markWon = Markwon.builder(itemView.context)
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TaskListPlugin.create(itemView.context))
@@ -66,6 +68,11 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
         getItem(position).let { note ->
 
             holder.apply {
+                title.transitionName = "title_${note.id}"
+                content.transitionName = "content_${note.id}"
+                image.transitionName = "image_${note.id}"
+                parent.transitionName = "recyclerView_${note.id}"
+
                 title.text = note.title
                 markWon.setMarkdown(content, note.content)
                 date.text = note.date
@@ -86,14 +93,16 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
                 itemView.setOnClickListener {
                     val action = NoteFragmentDirections.actionNoteFragmentToNoteContentFragment()
                         .setNote(note)
+                    val extras = FragmentNavigatorExtras(parent to "recyclerView_${note.id}")
                     it.hideKeyboard()
-                    Navigation.findNavController(it).navigate(action)
+                    Navigation.findNavController(it).navigate(action, extras)
                 }
                 itemView.noteContentItemTitle.setOnClickListener {
                     val action = NoteFragmentDirections.actionNoteFragmentToNoteContentFragment()
                         .setNote(note)
+                    val extras = FragmentNavigatorExtras(parent to "recyclerView_${note.id}")
                     it.hideKeyboard()
-                    Navigation.findNavController(it).navigate(action)
+                    Navigation.findNavController(it).navigate(action, extras)
                 }
             }
         }

@@ -22,11 +22,13 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.navArgs
+import androidx.transition.TransitionInflater
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -61,19 +63,17 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private lateinit var photoFile: File
     private val args: NoteContentFragmentArgs by navArgs()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition = TransitionInflater.from(requireContext())
+            .inflateTransition(android.R.transition.move).excludeTarget(noteImage, true)
+    }
+
     @SuppressLint("InflateParams", "QueryPermissionsNeeded")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        appBarLayout2.visibility = View.INVISIBLE
-        noteContentTxtView.visibility = View.INVISIBLE
-        titleTxtView.visibility = View.INVISIBLE
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(10)
-            appBarLayout2.visibility = View.VISIBLE
-            noteContentTxtView.visibility = View.VISIBLE
-            titleTxtView.visibility = View.VISIBLE
-        }
+        ViewCompat.setTransitionName(noteContentFragmentParent, "recyclerView_${args.note?.id}")
 
         noteContentTxtView.setStylesBar(styleBar)
 

@@ -7,8 +7,11 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS
 import android.widget.ImageView
+import androidx.core.app.ActivityCompat.postponeEnterTransition
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 
 
 fun View.hideKeyboard() =
@@ -18,12 +21,16 @@ fun View.hideKeyboard() =
 fun Context.loadImage(
     uri: Uri?,
     image: ImageView
-) = Glide.with(this)
-    .load(uri)
-    .override(3200, 2400)
-    .thumbnail(0.5f)
-    .transition(DrawableTransitionOptions.withCrossFade(500))
-    .into(image)
+) {
+    postponeEnterTransition(NoteActivity())
+    Glide.with(this)
+        .load(uri)
+        .override(2000, 2000)
+        .diskCacheStrategy(DiskCacheStrategy.DATA)
+        .thumbnail(0.01f)
+        .transition(DrawableTransitionOptions.withCrossFade(200))
+        .into(image)
+}
 
 fun Context.loadHiRezThumbnail(
     uri: Uri?,
@@ -31,6 +38,7 @@ fun Context.loadHiRezThumbnail(
 ) = Glide.with(this)
     .load(uri)
     .override(500, 600)
+    .diskCacheStrategy(DiskCacheStrategy.DATA)
     .thumbnail(0.1f)
     .transition(DrawableTransitionOptions.withCrossFade(200))
     .into(image)

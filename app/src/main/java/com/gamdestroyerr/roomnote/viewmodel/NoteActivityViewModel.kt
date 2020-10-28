@@ -7,12 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.repository.NoteRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class NoteActivityViewModel(private val repositoryObject: NoteRepository) : ViewModel() {
 
-    fun saveNote(newNote: Note) = viewModelScope.launch(Dispatchers.IO) {
+    fun saveNote(newNote: Note) = viewModelScope.launch {
         Log.d("tag", "saveNote() is called")
         repositoryObject.addNote(newNote)
     }
@@ -29,11 +28,11 @@ class NoteActivityViewModel(private val repositoryObject: NoteRepository) : View
         return null
     }
 
-    fun updateNote(existingNote: Note) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateNote(existingNote: Note) = viewModelScope.launch {
         repositoryObject.updateNote(existingNote)
     }
 
-    fun deleteNote(existingNote: Note) = viewModelScope.launch(Dispatchers.IO) {
+    fun deleteNote(existingNote: Note) = viewModelScope.launch {
         repositoryObject.deleteNote(existingNote)
     }
 

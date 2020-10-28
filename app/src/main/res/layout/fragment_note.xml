@@ -97,6 +97,7 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingStart="6dp"
+        android:transitionGroup="true"
         android:paddingEnd="6dp"
         android:paddingBottom="5dp"
         tools:listitem="@layout/note_item_layout"
@@ -116,10 +117,8 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.6"
             tools:visibility="gone"
             android:contentDescription="@string/no_data_image" />
 
