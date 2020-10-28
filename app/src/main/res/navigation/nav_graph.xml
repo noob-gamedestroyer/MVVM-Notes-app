@@ -2,7 +2,6 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph"
     app:startDestination="@id/noteFragment">
 
     <fragment
@@ -12,9 +11,7 @@
         tools:layout="@layout/fragment_note">
         <action
             android:id="@+id/action_noteFragment_to_noteContentFragment"
-            app:destination="@id/noteContentFragment"
-            app:enterAnim="@anim/slide_up"
-            app:exitAnim="@anim/fade_scale" />
+            app:destination="@id/noteContentFragment" />
     </fragment>
     <fragment
         android:id="@+id/noteContentFragment"

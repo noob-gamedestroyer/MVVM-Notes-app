@@ -18,6 +18,7 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.transition.TransitionInflater
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.adapters.RvNotesAdapter
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -26,6 +27,7 @@ import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.transition.MaterialElevationScale
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator
 import kotlinx.android.synthetic.main.fragment_note.*
 import kotlinx.android.synthetic.main.fragment_note.view.*
@@ -40,20 +42,31 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private lateinit var noteActivityViewModel: NoteActivityViewModel
     private lateinit var adapter: RvNotesAdapter
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementReturnTransition =
+            TransitionInflater.from(requireContext()).inflateTransition(android.R.transition.move)
+        exitTransition = MaterialElevationScale(false).apply {
+            duration = 400
+        }
+        enterTransition = MaterialElevationScale(true).apply {
+            duration = 400
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val activity = activity as NoteActivity
-        activity.window.statusBarColor = Color.WHITE
+
         noteActivityViewModel = activity.noteActivityViewModel
         val navController = Navigation.findNavController(view)
 
         requireView().hideKeyboard()
 
-        appBarLayout1.visibility = View.GONE
         CoroutineScope(Dispatchers.Main).launch {
-            delay(1)
-            appBarLayout1.visibility = View.VISIBLE
+            delay(10)
+            activity.window.statusBarColor = Color.WHITE
         }
 
 
@@ -184,6 +197,13 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         rv_note.setHasFixedSize(true)
         adapter = RvNotesAdapter()
         rv_note.adapter = adapter
+        rv_note.apply {
+            postponeEnterTransition()
+            viewTreeObserver.addOnPreDrawListener {
+                startPostponedEnterTransition()
+                true
+            }
+        }
         rv_note.itemAnimator = SlideInDownAnimator().apply {
             addDuration = 250
         }
