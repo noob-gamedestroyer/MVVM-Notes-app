@@ -6,10 +6,13 @@
     <string name="save">save</string>
     <string name="title">Title</string>
     <string name="note">Note</string>
-    <string name="some_text">Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-        Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s,
-        when an unknown printer took a galley of type and scrambled it to make a type specimen book.
-        It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
+    <string name="some_text">Lorem Ipsum is simply dummy text of
+        the printing and typesetting industry. Lorem Ipsum has been
+        the industry\'s standard dummy text ever since the 1500s,
+        when an unknown printer took a galley of type and scrambled
+        it to make a type specimen book. It has survived not only five
+        centuries, but also the leap into electronic typesetting,
+        remaining essentially unchanged.
     </string>
     <string name="this_is_a_title">What is Lorem Ipsum?</string>
     <string name="dd_mm_yyyy">dd/mm/yyyy</string>
@@ -25,4 +28,7 @@
     <string name="fileAuthority">com.gamdestroyerr.roomnote.fileProvider</string>
     <string name="select_image">Select Image</string>
     <string name="fab">fab</string>
+    <string name="short_label">New Note</string>
+    <string name="long_label">Add New Note</string>
+    <string name="disabled_message">New Note Shortcut Disabled</string>
 </resources>

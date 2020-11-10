@@ -4,7 +4,6 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -17,6 +16,7 @@ import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.fragments.NoteFragmentDirections
 import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.utils.loadHiRezThumbnail
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textview.MaterialTextView
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -38,7 +38,7 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
         val title: MaterialTextView = itemView.noteItemTitle
         val content: TextView = itemView.noteContentItemTitle
         val date: MaterialTextView = itemView.noteDate
-        val image: ImageView = itemView.itemNoteImage
+        val image: ShapeableImageView = itemView.itemNoteImage
         val drawable = ContextCompat.getDrawable(itemView.context, R.drawable.note_item_rounded)
         val noteContainer: ConstraintLayout = itemView.noteItemContainer
         val parent: ConstraintLayout = itemView.noteItemLayoutParent
@@ -68,9 +68,6 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
         getItem(position).let { note ->
 
             holder.apply {
-                title.transitionName = "title_${note.id}"
-                content.transitionName = "content_${note.id}"
-                image.transitionName = "image_${note.id}"
                 parent.transitionName = "recyclerView_${note.id}"
 
                 title.text = note.title

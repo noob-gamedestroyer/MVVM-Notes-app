@@ -18,6 +18,7 @@
         android:name="com.gamdestroyerr.roomnote.ui.fragments.NoteContentFragment"
         android:label="fragment_note_content"
         tools:layout="@layout/fragment_note_content">
+        <deepLink app:uri="notesapp://com.gamedestroyer.roomnote/addnewnote" />
         <action
             android:id="@+id/action_noteContentFragment_to_noteFragment"
             app:destination="@id/noteFragment"
@@ -25,8 +26,8 @@
             app:popUpToInclusive="true" />
         <argument
             android:name="Note"
+            android:defaultValue="@null"
             app:argType="com.gamdestroyerr.roomnote.model.Note"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
     </fragment>
 </navigation>

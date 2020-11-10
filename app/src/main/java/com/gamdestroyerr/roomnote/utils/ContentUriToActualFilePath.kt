@@ -42,9 +42,12 @@ fun getImageUrlWithAuthority(
     return null
 }
 
-/* Creates a temp file,
- this file is in app specific storage so other app cannot access it */
-
+/** Creates a temp file,
+ * this file is in app specific storage so other app cannot access it,
+ * and starting from android 11 no file manager has access to android
+ * directory in internal storage.
+ *@param activity Takes a FragmentActivity
+ *@return File - Takes a File */
 fun getPhotoFile(
     activity: FragmentActivity
 ): File {

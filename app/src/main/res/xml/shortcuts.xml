@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <shortcut
+        android:shortcutId="NewNote"
+        android:enabled="true"
+        android:shortcutShortLabel="@string/short_label"
+        android:shortcutLongLabel="@string/long_label"
+        android:shortcutDisabledMessage="@string/disabled_message"
+        android:icon="@drawable/ic_edit"
+        tools:targetApi="n_mr1">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.gamdestroyerr.roomnote"
+            android:targetClass="com.gamdestroyerr.roomnote.ui.activity.NoteActivity"
+            android:data="notesapp://com.gamedestroyer.roomnote/addnewnote" />
+    </shortcut>
+
+</shortcuts>

@@ -13,12 +13,10 @@ import android.view.inputmethod.EditorInfo
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
-import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import androidx.transition.TransitionInflater
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.adapters.RvNotesAdapter
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
@@ -28,7 +26,7 @@ import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialElevationScale
-import jp.wasabeef.recyclerview.animators.SlideInDownAnimator
+import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 import kotlinx.android.synthetic.main.fragment_note.*
 import kotlinx.android.synthetic.main.fragment_note.view.*
 import kotlinx.coroutines.CoroutineScope
@@ -36,6 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
@@ -44,13 +43,12 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        sharedElementReturnTransition =
-            TransitionInflater.from(requireContext()).inflateTransition(android.R.transition.move)
+
         exitTransition = MaterialElevationScale(false).apply {
-            duration = 400
+            duration = 350
         }
         enterTransition = MaterialElevationScale(true).apply {
-            duration = 400
+            duration = 350
         }
     }
 
@@ -72,7 +70,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
         val count = parentFragmentManager.backStackEntryCount
         Log.d("backStackCount", count.toString())
-        noteActivityViewModel.saveImagePath(null)  //temporary fix
+        noteActivityViewModel.saveImagePath(null)
 
 
         //Receives confirmation from the noteContentFragment
@@ -120,9 +118,9 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
                     val text = s.toString()
                     val query = "%$text%"
                     if (query.isNotEmpty()) {
-                        noteActivityViewModel.searchNote(query).observe(viewLifecycleOwner, {
+                        noteActivityViewModel.searchNote(query).observe(viewLifecycleOwner) {
                             adapter.submitList(it)
-                        })
+                        }
                     } else {
                         observerDataChanges()
                     }
@@ -198,27 +196,27 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         adapter = RvNotesAdapter()
         rv_note.adapter = adapter
         rv_note.apply {
-            postponeEnterTransition()
+            postponeEnterTransition(300L, TimeUnit.MILLISECONDS)
             viewTreeObserver.addOnPreDrawListener {
                 startPostponedEnterTransition()
                 true
             }
         }
-        rv_note.itemAnimator = SlideInDownAnimator().apply {
+        rv_note.itemAnimator = SlideInUpAnimator().apply {
             addDuration = 250
         }
         observerDataChanges()
     }
 
     private fun observerDataChanges() {
-        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner, Observer { list ->
+        noteActivityViewModel.getAllNotes().observe(viewLifecycleOwner) { list ->
             if (list.isEmpty()) {
                 no_data.visibility = View.VISIBLE
             } else {
                 no_data.visibility = View.GONE
             }
             adapter.submitList(list)
-        })
+        }
     }
 
     private fun swipeToDelete(recyclerView: RecyclerView) {

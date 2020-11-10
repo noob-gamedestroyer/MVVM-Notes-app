@@ -8,7 +8,6 @@ import kotlinx.android.parcel.Parcelize
 @Entity
 @Parcelize
 data class Note(
-
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     val title: String,
@@ -16,4 +15,4 @@ data class Note(
     val date: String,
     val color: Int = -1,
     val imagePath: String?,
-    ): Parcelable
+) : Parcelable

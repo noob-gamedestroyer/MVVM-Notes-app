@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
@@ -28,24 +29,20 @@ import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.navArgs
-import androidx.transition.TransitionInflater
+import androidx.transition.Transition
+import androidx.transition.TransitionListenerAdapter
 import com.gamdestroyerr.roomnote.R
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
-import com.gamdestroyerr.roomnote.utils.getImageUrlWithAuthority
-import com.gamdestroyerr.roomnote.utils.getPhotoFile
-import com.gamdestroyerr.roomnote.utils.hideKeyboard
-import com.gamdestroyerr.roomnote.utils.loadImage
+import com.gamdestroyerr.roomnote.utils.*
 import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.transition.MaterialContainerTransform
 import kotlinx.android.synthetic.main.bottom_sheet_dialog.view.*
 import kotlinx.android.synthetic.main.fragment_note_content.*
 import kotlinx.android.synthetic.main.fragment_note_content.view.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -61,28 +58,39 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private val REQUEST_IMAGE_CAPTURE = 100
     private val SELECT_IMAGE_FROM_STORAGE = 101
     private lateinit var photoFile: File
+    private val job = CoroutineScope(Dispatchers.Main)
     private val args: NoteContentFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        sharedElementEnterTransition = TransitionInflater.from(requireContext())
-            .inflateTransition(android.R.transition.move).excludeTarget(noteImage, true)
+
+        sharedElementEnterTransition = MaterialContainerTransform().apply {
+            drawingViewId = R.id.fragment
+            scrimColor = Color.TRANSPARENT
+            duration = 300L
+            setAllContainerColors(requireContext().themeColor(R.attr.colorSurface))
+        }
+        addSharedElementListener()
     }
 
     @SuppressLint("InflateParams", "QueryPermissionsNeeded")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        ViewCompat.setTransitionName(noteContentFragmentParent, "recyclerView_${args.note?.id}")
+        /* Sets the unique transition name for the layout that is
+         being inflated using SharedElementEnterTransition class */
+        ViewCompat.setTransitionName(
+            noteContentFragmentParent,
+            "recyclerView_${args.note?.id}"
+        )
+
+
 
         noteContentTxtView.setStylesBar(styleBar)
 
         navController = Navigation.findNavController(view)
         val activity = activity as NoteActivity
         noteActivityViewModel = activity.noteActivityViewModel
-
-        val count = parentFragmentManager.backStackEntryCount
-        Log.d("backStackCount", count.toString())
 
         registerForContextMenu(noteImage)
 
@@ -175,11 +183,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             titleTxtView.setText(note?.title)
             if (note?.content == null) noteContentTxtView.text = note?.content
             else noteContentTxtView.renderMD(note?.content!!)
-            setImage(note?.imagePath)
 
-            if (note == null) lastEdited.text =
-                getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
-            else {
+            if (note == null) {
+                lastEdited.text =
+                    getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
+                setImage(noteActivityViewModel.setImagePath())
+            } else {
                 lastEdited.text = getString(R.string.edited_on, note?.date)
                 color = note!!.color
 
@@ -193,11 +202,11 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                         setBackgroundColor(color)
                         noteImage.visibility = View.VISIBLE
                     }
-                    activity.window.statusBarColor = color
                 }
                 toolbarFragmentNoteContent.setBackgroundColor(color)
                 appBarLayout2.setBackgroundColor(color)
                 bottomBar.setBackgroundColor(color)
+                activity.window?.statusBarColor = note?.color!!
             }
         }
 
@@ -210,6 +219,31 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             })
     }
 
+    private fun addSharedElementListener() {
+        (sharedElementEnterTransition as Transition).addListener(
+            object : TransitionListenerAdapter() {
+                override fun onTransitionEnd(transition: Transition) {
+                    super.onTransitionEnd(transition)
+                    if (args.note?.imagePath != null) {
+                        noteImage.visibility = View.VISIBLE
+                        val uri = Uri.fromFile(File(args.note?.imagePath!!))
+                        job.launch {
+                            requireContext().asyncImageLoader(uri, noteImage, this)
+                        }
+                    } else noteImage.visibility = View.GONE
+                }
+            }
+        )
+    }
+
+    /**
+     * This Method handles the save and update operation.
+     *
+     * Checks if the note arg is null
+     * It will save the note with a unique id.
+     *
+     * If note arg has data it will update
+     * note to save any changes. */
     private fun saveNoteAndGoBack() {
 
         if (titleTxtView.text.toString().isEmpty() &&
@@ -296,17 +330,21 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         return sb
     }
 
+    /**
+     * This method gets a filePath as a string and converts it into URI
+     * then passes that URI and the target imageView to and extension function
+     * loadImage that will the image to its given target*/
     private fun setImage(filePath: String?) {
         if (filePath != null) {
             val uri = Uri.fromFile(File(filePath))
             noteImage.visibility = View.VISIBLE
             try {
-                context?.loadImage(uri, noteImage)
+                job.launch { requireContext().asyncImageLoader(uri, noteImage, this) }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), e.message, Toast.LENGTH_SHORT).show()
-                noteImage.visibility = View.INVISIBLE
+                noteImage.visibility = View.GONE
             }
-        }
+        } else noteImage.visibility = View.GONE
     }
 
     @Suppress("DEPRECATION")
@@ -333,7 +371,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             }
 
             noteImage.visibility = View.VISIBLE
-            context?.loadImage(uri, noteImage)
+            job.launch { requireContext().asyncImageLoader(uri, noteImage, this) }
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -381,5 +419,12 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             }
         }
         return super.onContextItemSelected(item)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (job.isActive) {
+            job.cancel()
+        }
     }
 }
