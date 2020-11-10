@@ -86,8 +86,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
 
 
-        noteContentTxtView.setStylesBar(styleBar)
-
         navController = Navigation.findNavController(view)
         val activity = activity as NoteActivity
         noteActivityViewModel = activity.noteActivityViewModel
@@ -99,9 +97,15 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             saveNoteAndGoBack()
         }
 
-        view.noteContentTxtView.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) bottomBar.visibility = View.VISIBLE
-            else bottomBar.visibility = View.GONE
+        try {
+            view.noteContentTxtView.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    view.bottomBar.visibility = View.VISIBLE
+                    noteContentTxtView.setStylesBar(styleBar)
+                } else view.bottomBar.visibility = View.GONE
+            }
+        } catch (e: Throwable) {
+            Log.d("TAG", e.stackTraceToString())
         }
 
         view.noteOptionsMenu.setOnClickListener {
