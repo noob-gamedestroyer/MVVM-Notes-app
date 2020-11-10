@@ -31,4 +31,5 @@
     <string name="short_label">New Note</string>
     <string name="long_label">Add New Note</string>
     <string name="disabled_message">New Note Shortcut Disabled</string>
+    <string name="delete_fab">deleteFab</string>
 </resources>
