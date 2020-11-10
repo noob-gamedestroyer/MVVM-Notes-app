@@ -66,7 +66,6 @@ suspend fun Context.asyncImageLoader(
         Log.e("asyncImageLoader", e.stackTraceToString())
     }
 }
-
 /**
  * Retrieve a color from the current [android.content.res.Resources.Theme].
  */

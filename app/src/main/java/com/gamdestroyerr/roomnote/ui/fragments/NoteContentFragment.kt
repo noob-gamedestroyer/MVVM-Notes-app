@@ -94,16 +94,17 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
         registerForContextMenu(noteImage)
 
-        view.saveBtn.setOnClickListener {
-            requireView().hideKeyboard()
-            saveNoteAndGoBack()
-        }
         view.backBtn.setOnClickListener {
             requireView().hideKeyboard()
             saveNoteAndGoBack()
         }
 
-        view.deleteFab.setOnClickListener {
+        view.noteContentTxtView.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) bottomBar.visibility = View.VISIBLE
+            else bottomBar.visibility = View.GONE
+        }
+
+        view.noteOptionsMenu.setOnClickListener {
             val bottomSheetDialog = BottomSheetDialog(
                 requireContext(),
                 R.style.BottomSheetDialogTheme,
@@ -125,7 +126,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     setBackgroundColor(color)
                     activity.window.statusBarColor = color
                     toolbarFragmentNoteContent.setBackgroundColor(color)
-                    appBarLayout2.setBackgroundColor(color)
                     bottomBar.setBackgroundColor(color)
                 }
             }
@@ -204,7 +204,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     }
                 }
                 toolbarFragmentNoteContent.setBackgroundColor(color)
-                appBarLayout2.setBackgroundColor(color)
                 bottomBar.setBackgroundColor(color)
                 activity.window?.statusBarColor = note?.color!!
             }
@@ -339,7 +338,9 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             val uri = Uri.fromFile(File(filePath))
             noteImage.visibility = View.VISIBLE
             try {
-                job.launch { requireContext().asyncImageLoader(uri, noteImage, this) }
+                job.launch {
+                    requireContext().asyncImageLoader(uri, noteImage, this)
+                }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), e.message, Toast.LENGTH_SHORT).show()
                 noteImage.visibility = View.GONE
