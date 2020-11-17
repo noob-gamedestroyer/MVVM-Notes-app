@@ -17,7 +17,6 @@ import android.util.Log
 import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -83,8 +82,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             noteContentFragmentParent,
             "recyclerView_${args.note?.id}"
         )
-
-
 
         navController = Navigation.findNavController(view)
         val activity = activity as NoteActivity
@@ -346,7 +343,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     requireContext().asyncImageLoader(uri, noteImage, this)
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), e.message, Toast.LENGTH_SHORT).show()
+                context?.shortToast(e.message)
                 noteImage.visibility = View.GONE
             }
         } else noteImage.visibility = View.GONE
@@ -420,7 +417,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
                 noteImage.visibility = View.GONE
                 updateNote()
-                Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
+                context?.shortToast("Deleted")
             }
         }
         return super.onContextItemSelected(item)

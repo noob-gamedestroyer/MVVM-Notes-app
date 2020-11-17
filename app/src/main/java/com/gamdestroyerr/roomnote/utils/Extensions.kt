@@ -11,6 +11,8 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS
 import android.widget.ImageView
+import android.widget.Toast.LENGTH_SHORT
+import android.widget.Toast.makeText
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.content.res.use
@@ -80,3 +82,5 @@ fun Context.themeColor(
         it.getColor(0, Color.MAGENTA)
     }
 }
+
+fun Context.shortToast(message: String?) = makeText(this, message, LENGTH_SHORT).show()
