@@ -23,7 +23,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -31,6 +33,8 @@ import androidx.navigation.fragment.navArgs
 import androidx.transition.Transition
 import androidx.transition.TransitionListenerAdapter
 import com.gamdestroyerr.roomnote.R
+import com.gamdestroyerr.roomnote.databinding.BottomSheetDialogBinding
+import com.gamdestroyerr.roomnote.databinding.FragmentNoteContentBinding
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.activity.NoteActivity
 import com.gamdestroyerr.roomnote.utils.*
@@ -38,9 +42,6 @@ import com.gamdestroyerr.roomnote.viewmodel.NoteActivityViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.transition.MaterialContainerTransform
-import kotlinx.android.synthetic.main.bottom_sheet_dialog.view.*
-import kotlinx.android.synthetic.main.fragment_note_content.*
-import kotlinx.android.synthetic.main.fragment_note_content.view.*
 import kotlinx.coroutines.*
 import java.io.File
 import java.text.SimpleDateFormat
@@ -49,63 +50,65 @@ import java.util.*
 class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
 
     private lateinit var navController: NavController
-    private lateinit var noteActivityViewModel: NoteActivityViewModel
+    private lateinit var contentBinding: FragmentNoteContentBinding
     private lateinit var result: String
+    private lateinit var photoFile: File
     private var note: Note? = null
-    private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
     private var color = -1
+    private val noteActivityViewModel: NoteActivityViewModel by activityViewModels()
+    private val currentDate = SimpleDateFormat.getDateInstance().format(Date())
     private val REQUEST_IMAGE_CAPTURE = 100
     private val SELECT_IMAGE_FROM_STORAGE = 101
-    private lateinit var photoFile: File
     private val job = CoroutineScope(Dispatchers.Main)
     private val args: NoteContentFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        sharedElementEnterTransition = MaterialContainerTransform().apply {
+        val animation = MaterialContainerTransform().apply {
             drawingViewId = R.id.fragment
             scrimColor = Color.TRANSPARENT
             duration = 300L
             setAllContainerColors(requireContext().themeColor(R.attr.colorSurface))
         }
+        sharedElementEnterTransition = animation
+        sharedElementReturnTransition = animation
         addSharedElementListener()
     }
 
     @SuppressLint("InflateParams", "QueryPermissionsNeeded")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        contentBinding = FragmentNoteContentBinding.bind(view)
 
         /* Sets the unique transition name for the layout that is
          being inflated using SharedElementEnterTransition class */
         ViewCompat.setTransitionName(
-            noteContentFragmentParent,
+            contentBinding.noteContentFragmentParent,
             "recyclerView_${args.note?.id}"
         )
 
         navController = Navigation.findNavController(view)
         val activity = activity as NoteActivity
-        noteActivityViewModel = activity.noteActivityViewModel
+        registerForContextMenu(contentBinding.noteImage)
 
-        registerForContextMenu(noteImage)
-
-        view.backBtn.setOnClickListener {
+        contentBinding.backBtn.setOnClickListener {
             requireView().hideKeyboard()
             saveNoteAndGoBack()
         }
 
         try {
-            view.noteContentTxtView.setOnFocusChangeListener { _, hasFocus ->
+            contentBinding.etNoteContent.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    view.bottomBar.visibility = View.VISIBLE
-                    noteContentTxtView.setStylesBar(styleBar)
-                } else view.bottomBar.visibility = View.GONE
+                    contentBinding.bottomBar.visibility = View.VISIBLE
+                    contentBinding.etNoteContent.setStylesBar(contentBinding.styleBar)
+                } else contentBinding.bottomBar.visibility = View.GONE
             }
         } catch (e: Throwable) {
             Log.d("TAG", e.stackTraceToString())
         }
 
-        view.noteOptionsMenu.setOnClickListener {
+        contentBinding.noteOptionsMenu.setOnClickListener {
             val bottomSheetDialog = BottomSheetDialog(
                 requireContext(),
                 R.style.BottomSheetDialogTheme,
@@ -119,21 +122,28 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 setContentView(bottomSheetView)
                 show()
             }
+            val bottomSheetBinding = BottomSheetDialogBinding.bind(bottomSheetView)
 
-            bottomSheetView.colorPicker.setSelectedColor(color)
-            bottomSheetView.colorPicker.setOnColorSelectedListener { value ->
-                color = value
-                noteContentFragmentParent.apply {
-                    setBackgroundColor(color)
-                    activity.window.statusBarColor = color
-                    toolbarFragmentNoteContent.setBackgroundColor(color)
-                    bottomBar.setBackgroundColor(color)
+            bottomSheetBinding.apply {
+                colorPicker.apply {
+                    setSelectedColor(color)
+                    setOnColorSelectedListener { value ->
+                        color = value
+                        contentBinding.apply {
+                            noteContentFragmentParent.setBackgroundColor(color)
+                            toolbarFragmentNoteContent.setBackgroundColor(color)
+                            bottomBar.setBackgroundColor(color)
+                            activity.window.statusBarColor = color
+                        }
+                        bottomSheetBinding.bottomSheetParent.setCardBackgroundColor(color)
+                    }
                 }
+                bottomSheetParent.setCardBackgroundColor(color)
             }
             bottomSheetView.post {
                 bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
             }
-            bottomSheetView.addImage.setOnClickListener {
+            bottomSheetBinding.addImage.setOnClickListener {
                 val permission = ActivityCompat.checkSelfPermission(
                     activity,
                     Manifest.permission.CAMERA,
@@ -167,7 +177,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 }
             }
             @Suppress("DEPRECATION")
-            bottomSheetView.selectImage.setOnClickListener {
+            bottomSheetBinding.selectImage.setOnClickListener {
                 Intent(Intent.ACTION_GET_CONTENT).also { chooseIntent ->
                     chooseIntent.type = "image/*"
                     chooseIntent.resolveActivity(activity.packageManager!!.also {
@@ -179,36 +189,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         }
 
         //opens with existing note item
-        args.let {
-            note = it.note
-            titleTxtView.setText(note?.title)
-            if (note?.content == null) noteContentTxtView.text = note?.content
-            else noteContentTxtView.renderMD(note?.content!!)
-
-            if (note == null) {
-                lastEdited.text =
-                    getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
-                setImage(noteActivityViewModel.setImagePath())
-            } else {
-                lastEdited.text = getString(R.string.edited_on, note?.date)
-                color = note!!.color
-
-                if (noteActivityViewModel.setImagePath() != null)
-                    setImage(noteActivityViewModel.setImagePath())
-                else noteActivityViewModel.saveImagePath(note?.imagePath)
-
-                noteContentFragmentParent.apply {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(10)
-                        setBackgroundColor(color)
-                        noteImage.visibility = View.VISIBLE
-                    }
-                }
-                toolbarFragmentNoteContent.setBackgroundColor(color)
-                bottomBar.setBackgroundColor(color)
-                activity.window?.statusBarColor = note?.color!!
-            }
-        }
+        setUpNote()
 
         activity.onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
@@ -222,15 +203,15 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private fun addSharedElementListener() {
         (sharedElementEnterTransition as Transition).addListener(
             object : TransitionListenerAdapter() {
-                override fun onTransitionEnd(transition: Transition) {
-                    super.onTransitionEnd(transition)
+                override fun onTransitionStart(transition: Transition) {
+                    super.onTransitionStart(transition)
                     if (args.note?.imagePath != null) {
-                        noteImage.visibility = View.VISIBLE
+                        contentBinding.noteImage.isVisible = true
                         val uri = Uri.fromFile(File(args.note?.imagePath!!))
                         job.launch {
-                            requireContext().asyncImageLoader(uri, noteImage, this)
+                            requireContext().asyncImageLoader(uri, contentBinding.noteImage, this)
                         }
-                    } else noteImage.visibility = View.GONE
+                    } else contentBinding.noteImage.isVisible = false
                 }
             }
         )
@@ -246,8 +227,8 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
      * note to save any changes. */
     private fun saveNoteAndGoBack() {
 
-        if (titleTxtView.text.toString().isEmpty() &&
-            noteContentTxtView.text.toString().isEmpty()
+        if (contentBinding.etTitle.text.toString().isEmpty() &&
+            contentBinding.etNoteContent.text.toString().isEmpty()
         ) {
             result = "Empty Note Discarded"
             setFragmentResult("key", bundleOf("bundleKey" to result))
@@ -257,14 +238,14 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             )
 
         } else {
-
+            note = args.note
             when (note) {
                 null -> {
                     noteActivityViewModel.saveNote(
                         Note(
                             0,
-                            titleTxtView.text.toString(),
-                            noteContentTxtView.getMD(),
+                            contentBinding.etTitle.text.toString(),
+                            contentBinding.etNoteContent.getMD(),
                             currentDate,
                             color,
                             noteActivityViewModel.setImagePath(),
@@ -283,7 +264,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 }
                 else -> {
                     updateNote()
-                    navController.navigate(R.id.action_noteContentFragment_to_noteFragment)
+                    navController.popBackStack()
                 }
             }
         }
@@ -294,8 +275,8 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
             noteActivityViewModel.updateNote(
                 Note(
                     note!!.id,
-                    titleTxtView.text.toString(),
-                    noteContentTxtView.getMD(),
+                    contentBinding.etTitle.text.toString(),
+                    contentBinding.etNoteContent.getMD(),
                     currentDate,
                     color,
                     noteActivityViewModel.setImagePath(),
@@ -322,12 +303,45 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
         }
     }
 
-    private fun menuIconWithText(r: Drawable, title: String): CharSequence? {
+    private fun menuIconWithText(r: Drawable, title: String): CharSequence {
         r.setBounds(0, 0, r.intrinsicWidth, r.intrinsicHeight)
         val sb = SpannableString("   $title")
         val imageSpan = ImageSpan(r, ImageSpan.ALIGN_BOTTOM)
         sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         return sb
+    }
+
+    private fun setUpNote() {
+        val note = args.note
+        val title = contentBinding.etTitle
+        val content = contentBinding.etNoteContent
+        val lastEdited = contentBinding.lastEdited
+        val savedImage = noteActivityViewModel.setImagePath()
+
+        if (note == null) {
+            lastEdited.text =
+                getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
+            setImage(noteActivityViewModel.setImagePath())
+        }
+
+        if (note != null) {
+            title.setText(note.title)
+            content.renderMD(note.content)
+            lastEdited.text = getString(R.string.edited_on, note.date)
+            color = note.color
+            if (savedImage != null) setImage(savedImage)
+            else noteActivityViewModel.saveImagePath(note.imagePath)
+            contentBinding.apply {
+                job.launch {
+                    delay(10)
+                    noteContentFragmentParent.setBackgroundColor(color)
+                    noteImage.isVisible = true
+                }
+                toolbarFragmentNoteContent.setBackgroundColor(color)
+                bottomBar.setBackgroundColor(color)
+            }
+            activity?.window?.statusBarColor = note.color
+        }
     }
 
     /**
@@ -337,16 +351,16 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
     private fun setImage(filePath: String?) {
         if (filePath != null) {
             val uri = Uri.fromFile(File(filePath))
-            noteImage.visibility = View.VISIBLE
+            contentBinding.noteImage.isVisible = true
             try {
                 job.launch {
-                    requireContext().asyncImageLoader(uri, noteImage, this)
+                    requireContext().asyncImageLoader(uri, contentBinding.noteImage, this)
                 }
             } catch (e: Exception) {
                 context?.shortToast(e.message)
-                noteImage.visibility = View.GONE
+                contentBinding.noteImage.isVisible = false
             }
-        } else noteImage.visibility = View.GONE
+        } else contentBinding.noteImage.isVisible = false
     }
 
     @Suppress("DEPRECATION")
@@ -371,9 +385,6 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                 noteActivityViewModel.saveImagePath(selectedImagePath)
                 setImage(selectedImagePath)
             }
-
-            noteImage.visibility = View.VISIBLE
-            job.launch { requireContext().asyncImageLoader(uri, noteImage, this) }
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -415,7 +426,7 @@ class NoteContentFragment : Fragment(R.layout.fragment_note_content) {
                     noteActivityViewModel.saveImagePath(null)
                 }
 
-                noteImage.visibility = View.GONE
+                contentBinding.noteImage.isVisible = false
                 updateNote()
                 context?.shortToast("Deleted")
             }

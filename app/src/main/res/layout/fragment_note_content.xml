@@ -96,7 +96,7 @@
                 android:visibility="gone" />
 
             <EditText
-                android:id="@+id/titleTxtView"
+                android:id="@+id/etTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
@@ -111,7 +111,7 @@
                 android:textSize="22sp" />
 
             <com.yahiaangelo.markdownedittext.MarkdownEditText
-                android:id="@+id/noteContentTxtView"
+                android:id="@+id/etNoteContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="22dp"

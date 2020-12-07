@@ -71,7 +71,7 @@
                         android:textSize="16sp" />
 
                     <ImageView
-                        android:id="@+id/clear_text"
+                        android:id="@+id/clearText"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:background="?attr/selectableItemBackgroundBorderless"
@@ -92,7 +92,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_note"
+        android:id="@+id/rvNote"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
@@ -108,7 +108,7 @@
         android:layout_height="match_parent">
 
         <ImageView
-            android:id="@+id/no_data"
+            android:id="@+id/noData"
             android:layout_width="130dp"
             android:layout_height="130dp"
             android:layout_gravity="center"
@@ -155,7 +155,7 @@
             app:useCompatPadding="false" />
 
         <TextView
-            android:id="@+id/chat_fab_text"
+            android:id="@+id/chatFabText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/google_sans_regular"

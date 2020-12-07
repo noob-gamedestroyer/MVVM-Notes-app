@@ -4,26 +4,26 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.gamdestroyerr.roomnote.R
+import com.gamdestroyerr.roomnote.databinding.NoteItemLayoutBinding
 import com.gamdestroyerr.roomnote.model.Note
 import com.gamdestroyerr.roomnote.ui.fragments.NoteFragmentDirections
 import com.gamdestroyerr.roomnote.utils.hideKeyboard
 import com.gamdestroyerr.roomnote.utils.loadHiRezThumbnail
-import com.google.android.material.imageview.ShapeableImageView
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textview.MaterialTextView
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
 import io.noties.markwon.MarkwonVisitor
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tasklist.TaskListPlugin
-import kotlinx.android.synthetic.main.note_item_layout.view.*
 import org.commonmark.node.SoftLineBreak
 import java.io.File
 
@@ -35,13 +35,12 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
 ) {
 
     inner class NotesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val title: MaterialTextView = itemView.noteItemTitle
-        val content: TextView = itemView.noteContentItemTitle
-        val date: MaterialTextView = itemView.noteDate
-        val image: ShapeableImageView = itemView.itemNoteImage
-        val drawable = ContextCompat.getDrawable(itemView.context, R.drawable.note_item_rounded)
-        val noteContainer: ConstraintLayout = itemView.noteItemContainer
-        val parent: ConstraintLayout = itemView.noteItemLayoutParent
+        private val contentBinding = NoteItemLayoutBinding.bind(itemView)
+        val title: MaterialTextView = contentBinding.noteItemTitle
+        val content: TextView = contentBinding.noteContentItemTitle
+        val date: MaterialTextView = contentBinding.noteDate
+        val image: ImageView = contentBinding.itemNoteImage
+        val parent: MaterialCardView = contentBinding.noteItemLayoutParent
         val markWon = Markwon.builder(itemView.context)
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TaskListPlugin.create(itemView.context))
@@ -80,13 +79,11 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
                         itemView.context.loadHiRezThumbnail(uri, image)
                 } else {
                     Glide.with(itemView).clear(image)
-                    image.visibility = View.GONE
+                    image.isVisible = false
                 }
-                drawable?.setTint(note.color)
-                noteContainer.background = ContextCompat.getDrawable(
-                    holder.itemView.context,
-                    R.drawable.note_item_rounded
-                )
+
+                parent.setCardBackgroundColor(note.color)
+
                 itemView.setOnClickListener {
                     val action = NoteFragmentDirections.actionNoteFragmentToNoteContentFragment()
                         .setNote(note)
@@ -94,7 +91,7 @@ class RvNotesAdapter : androidx.recyclerview.widget.ListAdapter<
                     it.hideKeyboard()
                     Navigation.findNavController(it).navigate(action, extras)
                 }
-                itemView.noteContentItemTitle.setOnClickListener {
+                content.setOnClickListener {
                     val action = NoteFragmentDirections.actionNoteFragmentToNoteContentFragment()
                         .setNote(note)
                     val extras = FragmentNavigatorExtras(parent to "recyclerView_${note.id}")

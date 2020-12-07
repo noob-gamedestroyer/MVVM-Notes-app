@@ -20,7 +20,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.FutureTarget
-import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +31,7 @@ fun View.hideKeyboard() =
 
 fun Context.loadHiRezThumbnail(
     uri: Uri?,
-    image: ShapeableImageView
+    image: ImageView
 ) = Glide.with(this)
     .load(uri)
     .override(500, 500)
@@ -45,9 +44,7 @@ suspend fun Context.asyncImageLoader(
     uri: Uri?,
     image: ImageView,
     job: CoroutineScope,
-//    fragment: Fragment
 ) {
-//    fragment.postponeEnterTransition()
     val bitmap = job.async(Dispatchers.IO, CoroutineStart.DEFAULT) {
         val futureTarget: FutureTarget<Bitmap> = Glide.with(this@asyncImageLoader)
             .asBitmap()
@@ -63,7 +60,6 @@ suspend fun Context.asyncImageLoader(
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .transition(DrawableTransitionOptions.withCrossFade(200))
             .into(image)
-//        fragment.startPostponedEnterTransition()
     } catch (e: IllegalArgumentException) {
         Log.e("asyncImageLoader", e.stackTraceToString())
     }
